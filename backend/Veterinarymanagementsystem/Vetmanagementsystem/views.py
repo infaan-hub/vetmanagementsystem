@@ -711,3 +711,28 @@ def logout_view(request):
     auth_logout(request)  # clears Django session
     request.session.flush()  # clears custom client session
     return redirect('login')
+
+# Vetmanagementsystem/views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .serializers import ClientSerializer
+from .models import Client
+
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """
+        Return the profile info of the logged-in user.
+        """
+        user = request.user
+        try:
+            client = Client.objects.get(user=user)
+        except Client.DoesNotExist:
+            client = None
+
+        if client:
+            serializer = ClientSerializer(client)
+            return Response(serializer.data)
+        return Response({"detail": "Client profile not found."}, status=404)
