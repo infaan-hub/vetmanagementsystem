@@ -1,0 +1,713 @@
+# Vetmanagementsystem/views.py 
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_protect
+
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
+# -------------------------
+# API Views (Staff + Client Friendly)
+# -------------------------
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated
+from .models import (
+    AllergyAlert, Visit, VitalSigns, ClientCommunicationNote,
+    ClientNote, Medication, Document, TreatmentPlan, Patient
+)
+from .serializers import (
+    AllergySerializer, VisitSerializer, VitalSerializer,
+    CommunicationSerializer, MedicalNoteSerializer,
+    MedicationSerializer, DocumentSerializer, TreatmentSerializer
+)
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from .models import Client, Patient
+from .serializers import ClientSerializer, PatientSerializer
+
+# Clients
+class ClientViewSet(ModelViewSet):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer
+    permission_classes = [AllowAny]  # or IsAuthenticated if you want JWT auth
+
+# Patients
+class PatientViewSet(ModelViewSet):
+    queryset = Patient.objects.all()
+    serializer_class = PatientSerializer
+    permission_classes = [IsAuthenticated]  # JWT protected
+
+
+# Helper function for client filter
+def _client_filter_kwargs_for_user(user):
+    if user.is_staff:
+        return None
+    if hasattr(Client, "user"):
+        return {"client__user": user}
+    if getattr(user, "email", None):
+        return {"client__email": user.email}
+    return {"client__id": -1}  # impossible filter
+
+# -------------------------
+# Allergy
+# -------------------------
+class AllergyViewSet(ModelViewSet):
+    serializer_class = AllergySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return AllergyAlert.objects.all()
+        kwargs = _client_filter_kwargs_for_user(user)
+        if kwargs is None:
+            return AllergyAlert.objects.all()
+        return AllergyAlert.objects.filter(patient__client__user=user)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not user.is_staff:
+            # enforce that client can only assign allergies to their patients
+            client = Client.objects.filter(user=user).first()
+            serializer.save(patient__client=client)
+        else:
+            serializer.save()
+# -------------------------
+# Appointment
+# -------------------------
+from .models import Appointment
+from .serializers import AppointmentSerializer  # make sure you have this serializer
+
+class AppointmentViewSet(ModelViewSet):
+    queryset = Appointment.objects.all()
+    serializer_class = AppointmentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Appointment.objects.all()
+        return Appointment.objects.filter(client__user=user)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not user.is_staff:
+            client = Client.objects.filter(user=user).first()
+            serializer.save(client=client)
+        else:
+            serializer.save()
+# -------------------------
+# Receipt
+# -------------------------
+from .models import Receipt
+from .serializers import ReceiptSerializer  # make sure this exists
+
+class ReceiptViewSet(ModelViewSet):
+    queryset = Receipt.objects.all()
+    serializer_class = ReceiptSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Receipt.objects.all()
+        # client only sees their own receipts
+        return Receipt.objects.filter(client__user=user)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not user.is_staff:
+            client = Client.objects.filter(user=user).first()
+            serializer.save(client=client)
+        else:
+            serializer.save()
+
+# -------------------------
+# Visit
+# -------------------------
+class VisitViewSet(ModelViewSet):
+    serializer_class = VisitSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Visit.objects.all()
+        kwargs = _client_filter_kwargs_for_user(user)
+        return Visit.objects.filter(patient__client__user=user)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not user.is_staff:
+            client = Client.objects.filter(user=user).first()
+            serializer.save(patient__client=client)
+        else:
+            serializer.save()
+
+# -------------------------
+# Vital Signs
+# -------------------------
+class VitalViewSet(ModelViewSet):
+    serializer_class = VitalSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return VitalSigns.objects.all()
+        return VitalSigns.objects.filter(visit__patient__client__user=user)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not user.is_staff:
+            client = Client.objects.filter(user=user).first()
+            serializer.save(visit__patient__client=client)
+        else:
+            serializer.save()
+
+# -------------------------
+# Communication Notes
+# -------------------------
+class CommunicationViewSet(ModelViewSet):
+    serializer_class = CommunicationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return ClientCommunicationNote.objects.all()
+        return ClientCommunicationNote.objects.filter(patient__client__user=user)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not user.is_staff:
+            client = Client.objects.filter(user=user).first()
+            serializer.save(patient__client=client)
+        else:
+            serializer.save()
+
+# -------------------------
+# Medical Notes
+# -------------------------
+class MedicalNoteViewSet(ModelViewSet):
+    serializer_class = MedicalNoteSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return ClientNote.objects.all()
+        return ClientNote.objects.filter(patient__client__user=user)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not user.is_staff:
+            client = Client.objects.filter(user=user).first()
+            serializer.save(patient__client=client)
+        else:
+            serializer.save()
+
+# -------------------------
+# Medication
+# -------------------------
+class MedicationViewSet(ModelViewSet):
+    serializer_class = MedicationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Medication.objects.all()
+        return Medication.objects.filter(patient__client__user=user)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not user.is_staff:
+            client = Client.objects.filter(user=user).first()
+            serializer.save(patient__client=client)
+        else:
+            serializer.save()
+
+# -------------------------
+# Document
+# -------------------------
+class DocumentViewSet(ModelViewSet):
+    serializer_class = DocumentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Document.objects.all()
+        return Document.objects.filter(patient__client__user=user)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not user.is_staff:
+            client = Client.objects.filter(user=user).first()
+            serializer.save(patient__client=client)
+        else:
+            serializer.save()
+
+# -------------------------
+# Treatment Plan
+# -------------------------
+class TreatmentViewSet(ModelViewSet):
+    serializer_class = TreatmentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return TreatmentPlan.objects.all()
+        return TreatmentPlan.objects.filter(patient__client__user=user)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not user.is_staff:
+            client = Client.objects.filter(user=user).first()
+            serializer.save(patient__client=client)
+        else:
+            serializer.save()
+
+
+
+from django.contrib.auth.models import User
+
+@csrf_protect
+def client_register(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+        email = request.POST["email"]
+        password = request.POST["password"]
+        full_name = request.POST["full_name"]
+
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password
+        )
+
+        Client.objects.create(
+            user=user,
+            full_name=full_name
+        )
+
+        return redirect("login")
+
+
+
+# -------------------------
+# Page Views + Logins
+# -------------------------
+
+
+# Vetmanagementsystem/views.py
+from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_protect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout as auth_logout
+from .models import Client
+
+@csrf_protect
+def login_view(request):
+    if request.method == "POST":
+        username = request.POST.get("username").strip()
+        password = request.POST.get("password")
+
+        try:
+            client = Client.objects.get(username=username)
+            if client.check_password(password):
+                # Log client in via session
+                request.session['client_id'] = client.id
+                request.session['client_username'] = client.username
+                request.session['client_full_name'] = client.full_name
+                return redirect('home')  # client dashboard
+            else:
+                error = "Invalid password."
+        except Client.DoesNotExist:
+            error = "Client not found."
+
+        return render(request, "login.html", {"error": error})
+
+    return render(request, "login.html")
+
+
+
+
+@csrf_protect
+def doctor_login_view(request):
+    """Doctor login at /doctor/login/ — only staff users allowed here"""
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "")
+        user = authenticate(request, username=username, password=password)
+
+        if user is None:
+            return render(request, "doctor_login.html", {"error": "Invalid username or password."})
+
+        if not user.is_active:
+            return render(request, "doctor_login.html", {"error": "Account disabled. Contact admin."})
+
+        if not user.is_staff:
+            return render(request, "doctor_login.html", {"error": "This account is not a doctor/staff account."})
+
+        login(request, user)
+        return redirect("doctor-dashboard")
+
+    return render(request, "doctor_login.html")
+
+
+
+# Vetmanagementsystem/views.py (partial)
+import json
+from django.shortcuts import render, redirect
+from django.db.models import Count, Sum
+from django.db.models.functions import TruncMonth
+
+from .models import Client, Patient, Visit, Appointment, Receipt
+
+def home(request):
+    """
+    Unified dashboard:
+      - If logged-in staff (doctor) -> show global/doctor dashboard
+      - Otherwise, attempt to show client dashboard using session['client_id']
+    """
+
+    # Staff (doctor) dashboard: must be a logged-in Django user with is_staff.
+    if getattr(request, "user", None) and request.user.is_authenticated and request.user.is_staff:
+        # GLOBAL COUNTS
+        patients_count = Patient.objects.count()
+        appointments_count = Appointment.objects.count()
+        receipts_qs = Receipt.objects.all()
+        receipts_count = receipts_qs.count()
+        receipts_total = receipts_qs.aggregate(total=Sum("amount"))["total"] or 0
+        receipts_paid_count = receipts_qs.filter(status="Paid").count()
+
+        monthly_visits_qs = (
+            Visit.objects
+            .annotate(month=TruncMonth("visit_date"))
+            .values("month")
+            .annotate(total=Count("id"))
+            .order_by("month")
+        )
+
+        dashboard_for = "doctor"
+        client = None
+
+    else:
+        # Client dashboard via session
+        client_id = request.session.get("client_id")
+        if not client_id:
+            return redirect("login")
+
+        client = Client.objects.filter(id=client_id).first()
+        if not client:
+            # session may be stale
+            request.session.pop("client_id", None)
+            return redirect("login")
+
+        patients_count = Patient.objects.filter(client=client).count()
+        appointments_count = Appointment.objects.filter(client=client).count()
+
+        receipts_qs = Receipt.objects.filter(client=client)
+        receipts_count = receipts_qs.count()
+        receipts_total = receipts_qs.aggregate(total=Sum("amount"))["total"] or 0
+        receipts_paid_count = receipts_qs.filter(status="Paid").count()
+
+        monthly_visits_qs = (
+            Visit.objects
+            .filter(patient__client=client)
+            .annotate(month=TruncMonth("visit_date"))
+            .values("month")
+            .annotate(total=Count("id"))
+            .order_by("month")
+        )
+
+        dashboard_for = "client"
+
+    # Build chart data (labels + data arrays)
+    chart_labels = []
+    chart_data = []
+    for item in monthly_visits_qs:
+        # item["month"] may be None for malformed data; guard it
+        month = item.get("month")
+        if month:
+            chart_labels.append(month.strftime("%b %Y"))
+            chart_data.append(item.get("total", 0))
+
+    context = {
+        "dashboard_for": dashboard_for,   # "doctor" or "client"
+        "client": client,
+        "patients_count": patients_count,
+        "appointments_count": appointments_count,
+        "receipts_count": receipts_count,
+        "receipts_total": float(receipts_total or 0),
+        "receipts_paid_count": receipts_paid_count,
+        "chart_labels_json": json.dumps(chart_labels),
+        "chart_data_json": json.dumps(chart_data),
+    }
+
+    return render(request, "home.html", context)
+
+
+from django.shortcuts import render
+from .models import Appointment, Receipt, AllergyAlert, Visit, VitalSigns, ClientNote, Medication, Document, TreatmentPlan
+
+def overview(request):
+    if request.user.is_staff:  # doctor
+        appointments = Appointment.objects.all()  # filter as needed
+        receipts = Receipt.objects.all()
+        context = {
+            'appointments': appointments,
+            'receipts': receipts,
+        }
+    else:  # customer/patient
+        allergies = AllergyAlert.objects.filter(patient__user=request.user)
+        visits = Visit.objects.filter(patient__user=request.user)
+        vitals = VitalSigns.objects.filter(patient__user=request.user)
+        medical_notes = ClientNote.objects.filter(patient__user=request.user)
+        medications = Medication.objects.filter(patient__user=request.user)
+        documents = Document.objects.filter(patient__user=request.user)
+        treatments = TreatmentPlan.objects.filter(patient__user=request.user)
+        context = {
+            'allergies': allergies,
+            'visits': visits,
+            'vitals': vitals,
+            'medical_notes': medical_notes,
+            'medications': medications,
+            'documents': documents,
+            'treatments': treatments,
+        }
+    return render(request, 'overview.html', context)
+
+def overview_customer(request):
+    """
+    Customer overview:
+    Shows ALL doctor-entered data related to this client's patients
+    """
+
+    # 1️⃣ Get logged-in CLIENT from session (NOT request.user)
+    client_id = request.session.get('client_id')
+
+    if not client_id:
+        # Not logged in as customer
+        return redirect('login')
+
+    client = Client.objects.filter(id=client_id).first()
+
+    if not client:
+        # Safety fallback
+        context = {
+            'allergies': [],
+            'visits': [],
+            'vitals': [],
+            'medical_notes': [],
+            'medications': [],
+            'documents': [],
+            'treatments': [],
+        }
+        return render(request, 'overview_customer.html', context)
+
+    # 2️⃣ Get all patients that belong to this client
+    patients = Patient.objects.filter(client=client)
+
+    # 3️⃣ Fetch ALL doctor-entered data correctly
+    allergies = AllergyAlert.objects.filter(patient__in=patients)
+
+    visits = Visit.objects.filter(patient__in=patients)
+
+    vitals = VitalSigns.objects.filter(
+        visit__patient__in=patients
+    )
+
+    medical_notes = ClientNote.objects.filter(
+        visit__patient__in=patients
+    )
+
+    medications = Medication.objects.filter(
+        visit__patient__in=patients
+    )
+
+    documents = Document.objects.filter(
+        patient__in=patients
+    )
+
+    treatments = TreatmentPlan.objects.filter(
+        visit__patient__in=patients
+    )
+
+    # 4️⃣ Send everything to template
+    context = {
+        'allergies': allergies,
+        'visits': visits,
+        'vitals': vitals,
+        'medical_notes': medical_notes,
+        'medications': medications,
+        'documents': documents,
+        'treatments': treatments,
+    }
+
+    return render(request, 'overview_customer.html', context)
+
+
+
+
+
+
+
+from django.shortcuts import render
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
+from .models import Patient, Visit, TreatmentPlan
+
+
+def doctor_dashboard(request):
+    # ======================
+    # COUNTS
+    # ======================
+    patients_count = Patient.objects.count()
+    visits_count = Visit.objects.count()
+    treatments_count = TreatmentPlan.objects.count()
+
+    # ======================
+    # MONTHLY VISITS CHART
+    # ======================
+    monthly_visits = (
+        Visit.objects
+        .annotate(month=TruncMonth("visit_date"))  # ✅ FIXED HERE
+        .values("month")
+        .annotate(total=Count("id"))
+        .order_by("month")
+    )
+
+    chart_labels = []
+    chart_data = []
+
+    for item in monthly_visits:
+        chart_labels.append(item["month"].strftime("%b %Y"))
+        chart_data.append(item["total"])
+
+    context = {
+        "patients_count": patients_count,
+        "visits_count": visits_count,
+        "treatments_count": treatments_count,
+        "chart_labels": chart_labels,
+        "chart_data": chart_data,
+    }
+
+    return render(request, "doctor_dashboard.html", context)
+
+
+
+# views.py
+from django.shortcuts import render
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
+from .models import Client, Patient, Visit, Appointment, Receipt
+
+def customer_dashboard(request):
+    user = request.user
+
+    # 🔒 get client linked to this user
+    try:
+        client = Client.objects.get(username=user.username)
+    except Client.DoesNotExist:
+        client = None
+
+    # ======================
+    # COUNTS (REAL, FILTERED)
+    # ======================
+    patients_count = Patient.objects.filter(client=client).count() if client else 0
+    visits_count = Visit.objects.filter(patient__client=client).count() if client else 0
+    appointments_count = Appointment.objects.filter(client=client).count() if client else 0
+    receipts_count = Receipt.objects.filter(client=client).count() if client else 0
+
+    # ======================
+    # MONTHLY VISITS (OPTIONAL)
+    # ======================
+    monthly_visits = (
+        Visit.objects.filter(patient__client=client)
+        .annotate(month=TruncMonth("visit_date"))
+        .values("month")
+        .annotate(total=Count("id"))
+        .order_by("month")
+    ) if client else []
+
+    chart_labels = [v["month"].strftime("%b %Y") for v in monthly_visits]
+    chart_data = [v["total"] for v in monthly_visits]
+
+    context = {
+        "client": client,
+        "patients_count": patients_count,
+        "visits_count": visits_count,
+        "appointments_count": appointments_count,
+        "receipts_count": receipts_count,
+        "chart_labels": chart_labels,
+        "chart_data": chart_data,
+    }
+
+    return render(request, "home.html", context)
+
+
+
+
+
+
+    
+
+
+
+
+@login_required
+def resource_page(request, resource_name):
+    """Generic front-end resource page that can fetch from api_url."""
+    api_url = f"/api/{resource_name}/"
+    return render(request, f"{resource_name}.html", {"api_url": api_url})
+
+# views.py
+from django.shortcuts import render, redirect
+from .models import Client
+from django.contrib.auth.decorators import login_required
+
+
+@login_required
+def client_profile(request):
+    client_id = request.session.get('client_id')
+    client = Client.objects.filter(id=client_id).first()
+    return render(request, "client.html", {"client": client})
+
+    # Fetch the client linked to the logged-in user
+    try:
+        client = Client.objects.get(user=request.user)
+    except Client.DoesNotExist:
+        client = None
+
+    return render(request, "clients.html", {"client": client})
+
+
+
+# views.py
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from .models import Client
+
+@login_required
+def client_page(request):
+    # Get the client linked to the logged-in user
+    client = None
+    if hasattr(request.user, 'client_profile'):
+        client = request.user.client_profile
+    else:
+        client = Client.objects.filter(email=request.user.email).first()
+    
+    return render(request, "client.html", {"client": client})
+
+
+
+def logout_view(request):
+    auth_logout(request)  # clears Django session
+    request.session.flush()  # clears custom client session
+    return redirect('login')

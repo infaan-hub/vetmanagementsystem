@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Veterinary Management System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root{
+      --card-bg: rgba(255,255,255,0.72);
+      --card-shadow: 0 18px 40px rgba(0,0,0,0.18);
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      /* direct image from the Pinterest pin (i.pinimg.com) */
+      background-image: url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: repeat;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .card {
+      width: min(92vw, 460px);
+      padding: 36px 34px;
+      border-radius: 18px;
+      background: var(--card-bg);
+      backdrop-filter: blur(10px) saturate(120%);
+      -webkit-backdrop-filter: blur(10px) saturate(120%);
+      box-shadow: var(--card-shadow);
+      text-align: center;
+      color: #111;
+    }
+
+    .logo {
+      width:72px;
+      height:72px;
+      border-radius:12px;
+      margin:0 auto 14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.02));
+      font-weight:700;
+      font-size:20px;
+      color:#111;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      letter-spacing: -0.2px;
+    }
+
+    p.lead {
+      margin: 0 0 22px;
+      font-size: 14px;
+      color: #222;
+      line-height: 1.5;
+    }
+
+    .actions {
+      display:flex;
+      gap:12px;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+
+    .btn {
+      padding: 12px 26px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+      border: 1px solid rgba(0,0,0,0.12);
+      background: rgba(255,255,255,0.42);
+      color: #111;
+      transition: transform .18s ease, background .18s ease, color .18s ease;
+      display:inline-block;
+    }
+
+    .btn:hover{
+      transform: translateY(-3px);
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+    }
+
+    .secondary {
+      background: transparent;
+      border: 1px solid rgba(0,0,0,0.08);
+      color: #111;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-weight:600;
+    }
+
+    .footer {
+      margin-top:16px;
+      font-size:12px;
+      color:#333;
+      opacity:.9;
+    }
+
+    @media (max-width:420px){
+      .card{ padding:20px; border-radius:14px; }
+      .logo{ width:58px; height:58px; font-size:18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card" role="main">
+    <div class="logo">VMS</div>
+
+    <h1>Veterinary Management System</h1>
+
+    <p class="lead">
+      A centralized, secure system to manage clients, patients, visits, medical records,
+      treatments and documents built to help clinics work faster and keep better records.
+    </p>
+
+    <div class="actions">
+      <!-- direct link to Django admin -->
+      <a class="btn" href="/admin/" title="Go to admin">Enter Admin Panel</a>
+
+      <!-- optional example link to API docs or login -->
+      <a class="btn secondary" href="/api/" title="API root">API Root</a>
+    </div>
+
+    <div class="footer">Built with Django & React</div>
+  </div>
+
+</body>
+</html>

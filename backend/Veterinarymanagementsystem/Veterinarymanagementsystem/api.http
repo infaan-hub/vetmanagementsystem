@@ -1,0 +1,12 @@
+### Get JWT Token
+POST http://127.0.0.1:8000/api/token/
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "adminpassword"
+}
+### Get Patients (Protected API)
+GET http://127.0.0.1:8000/api/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwNzQ3ODU0LCJpYXQiOjE3NzA3NDQyNTQsImp0aSI6ImViNjZmYTZmMjAwODQwNWQ4MmE2ZmZiMWI0ZmMwM2M5IiwidXNlcl9pZCI6IjEifQ.ZLz0SWpecaaliwZIZhY5YbafaKcWPVCHD8VWpPESSXE
+

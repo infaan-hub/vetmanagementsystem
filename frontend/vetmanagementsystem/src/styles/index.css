@@ -1,0 +1,139 @@
+/* ===============================
+   GLOBAL RESET
+================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ===============================
+   BODY BACKGROUND (COW SKIN STYLE)
+================================ */
+body {
+  min-height: 100vh;
+  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Cow-skin inspired background */
+  background-color: #f7f7f7;
+  background-image:
+    radial-gradient(circle at 20% 30%, #000 0 18px, transparent 19px),
+    radial-gradient(circle at 70% 60%, #000 0 24px, transparent 25px),
+    radial-gradient(circle at 40% 80%, #000 0 14px, transparent 15px),
+    radial-gradient(circle at 85% 25%, #000 0 20px, transparent 21px);
+  background-size: 300px 300px;
+}
+
+/* ===============================
+   CENTER LAYOUT
+================================ */
+.center {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===============================
+   GLASS CONTAINER
+================================ */
+.glass {
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+/* ===============================
+   FORM ELEMENTS
+================================ */
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #555;
+}
+
+label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #222;
+}
+
+/* ===============================
+   BUTTONS
+================================ */
+button {
+  padding: 12px 20px;
+  border-radius: 30px;
+  border: none;
+  background: #000;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+button:hover {
+  background: #222;
+  transform: translateY(-2px);
+}
+
+/* ===============================
+   NAVBAR (optional)
+================================ */
+.navbar {
+  position: fixed;
+  top: 20px;
+  right: 30px;
+}
+
+.navbar a {
+  color: #000;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 18px;
+}
+
+/* ===============================
+   CARDS GRID
+================================ */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 25px;
+  margin-top: 30px;
+}
+
+/* ===============================
+   TITLES & TEXT
+================================ */
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #222;
+}
