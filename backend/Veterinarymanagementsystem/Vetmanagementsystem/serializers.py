@@ -37,8 +37,7 @@ from .models import Client
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
-        fields = "__all__"
-
+        fields = ['id', 'full_name', 'phone']  # exclude user  
 
 
 class PatientSerializer(serializers.ModelSerializer):

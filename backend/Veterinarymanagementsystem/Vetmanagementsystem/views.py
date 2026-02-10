@@ -8,6 +8,8 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.db.models import Sum, Count
+from django.db.models.functions import TruncMonth
 # -------------------------
 # API Views (Staff + Client Friendly)
 # -------------------------
@@ -31,7 +33,19 @@ from .serializers import ClientSerializer, PatientSerializer
 class ClientViewSet(ModelViewSet):
     queryset = Client.objects.all()
     serializer_class = ClientSerializer
-    permission_classes = [AllowAny]  # or IsAuthenticated if you want JWT auth
+
+    def get_queryset(self):
+        user = self.request.user
+        # If staff, show all clients
+        if user.is_staff:
+            return Client.objects.all()
+        
+        # Otherwise, filter by client id from session
+        client_id = self.request.session.get("client_id")
+        if client_id:
+            return Client.objects.filter(id=client_id)
+        return Client.objects.none()
+
 
 # Patients
 class PatientViewSet(ModelViewSet):
