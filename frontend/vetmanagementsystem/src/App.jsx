@@ -1,31 +1,93 @@
-// src/App.jsx
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import "./styles/index.css"; // optional - remove if you don't have it
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { getRole } from "./utils/auth";
 
-/* USER SIDE */
-import Home from "./pages/Home.jsx";
-import RegisterClient from "./pages/RegisterClient.jsx";
-import AddPatient from "./pages/AddPatient.jsx";
-import MedicalView from "./pages/MedicalView.jsx";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import DoctorDashboard from "./pages/DoctorDashboard";
+import CustomerDashboard from "./pages/CustomerDashboard";
+import Patients from "./pages/Patients";
+import Visits from "./pages/Visits";
+import Appointments from "./pages/Appointments";
+import Receipts from "./pages/Receipts";
+import Overview from "./pages/Overview";
 
-/* DOCTOR / ADMIN SIDE */
-import DoctorLogin from "./pages/DoctorLogin.jsx";
-import AdminDashboard from "./pages/AdminDashboard.jsx";
+function PrivateRoute({ children, allowedRoles }) {
+  const role = getRole();
+  if (!role || !allowedRoles.includes(role)) {
+    return <Navigate to="/login" />;
+  }
+  return children;
+}
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* ===== USER ROUTES ===== */}
-        <Route path="/" element={<Home />} />
-        <Route path="/register" element={<RegisterClient />} />
-        <Route path="/patient" element={<AddPatient />} />
-        <Route path="/medical" element={<MedicalView />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-        {/* ===== DOCTOR / ADMIN ROUTES ===== */}
-        <Route path="/admin" element={<DoctorLogin />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        {/* Doctor routes */}
+        <Route
+          path="/doctor-dashboard"
+          element={
+            <PrivateRoute allowedRoles={["doctor"]}>
+              <DoctorDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/patients"
+          element={
+            <PrivateRoute allowedRoles={["doctor"]}>
+              <Patients />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/visits"
+          element={
+            <PrivateRoute allowedRoles={["doctor"]}>
+              <Visits />
+            </PrivateRoute>
+          }
+        />
+
+        {/* Customer routes */}
+        <Route
+          path="/customer-dashboard"
+          element={
+            <PrivateRoute allowedRoles={["customer"]}>
+              <CustomerDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/appointments"
+          element={
+            <PrivateRoute allowedRoles={["customer"]}>
+              <Appointments />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/receipts"
+          element={
+            <PrivateRoute allowedRoles={["customer"]}>
+              <Receipts />
+            </PrivateRoute>
+          }
+        />
+
+        {/* Shared overview */}
+        <Route
+          path="/overview"
+          element={
+            <PrivateRoute allowedRoles={["doctor", "customer"]}>
+              <Overview />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </Router>
   );

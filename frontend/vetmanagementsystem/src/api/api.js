@@ -1,103 +1,56 @@
 import axios from "axios";
 
-const api = axios.create({
+const ACCESS_TOKEN = "PUT_YOUR_ACCESS_TOKEN_HERE";
+const REFRESH_TOKEN = "PUT_YOUR_REFRESH_TOKEN_HERE";
+
+const API = axios.create({
   baseURL: "http://127.0.0.1:8000/api/",
-  withCredentials: true, // REQUIRED for Django sessions
-  headers: {
-    'Content-Type': "application/json",
-  },
 });
-/* =========================
-   PATIENT APIs (FULL DATA)
-========================= */
 
-// GET all patients
-export const getPatients = async () => {
-  const response = await api.get("patients/");
-  return response.data;
-};
-
-// GET single patient by ID
-export const getPatientById = async (id) => {
-  const response = await api.get(`patients/${id}/`);
-  return response.data;
-};
-
-// CREATE patient (ALL fields + photo)
-export const createPatient = async (patientData) => {
-  const formData = new FormData();
-
-  formData.append("patient_id", patientData.patient_id);
-  formData.append("name", patientData.name);
-  formData.append("species", patientData.species);
-  if (patientData.breed) formData.append("breed", patientData.breed);
-  formData.append("gender", patientData.gender);
-  if (patientData.color) formData.append("color", patientData.color);
-  if (patientData.date_of_birth) formData.append("date_of_birth", patientData.date_of_birth);
-  if (patientData.weight_kg !== undefined && patientData.weight_kg !== null) {
-    formData.append("weight_kg", patientData.weight_kg);
+// Attach access token
+API.interceptors.request.use((req) => {
+  if (ACCESS_TOKEN) {
+    req.headers.Authorization = `Bearer ${ACCESS_TOKEN}`;
   }
-  if (patientData.client !== undefined && patientData.client !== null) {
-    formData.append("client", patientData.client);
+  return req;
+});
+
+// Refresh token automatically
+API.interceptors.response.use(
+  (res) => res,
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        const res = await axios.post(
+          "http://127.0.0.1:8000/api/token/refresh/",
+          { refresh: REFRESH_TOKEN }
+        );
+        const newAccess = res.data.access;
+        API.defaults.headers.common["Authorization"] = `Bearer ${newAccess}`;
+        return API(originalRequest);
+      } catch (err) {
+        localStorage.clear();
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
   }
+);
 
-  if (patientData.photo) {
-    formData.append("photo", patientData.photo);
-  }
+// ------------------
+// API Functions
+// ------------------
+export const getPatients = () => API.get("patients/");
+export const getVisits = () => API.get("visits/");
+export const getClients = () => API.get("clients/");
+export const getAppointments = () => API.get("appointments/");
+export const getReceipts = () => API.get("receipts/");
+export const getMedications = () => API.get("medications/");
+export const getDocuments = () => API.get("documents/");
+export const getAllergies = () => API.get("allergies/");
+export const getTreatments = () => API.get("treatments/");
+export const getOverview = () => API.get("overview/"); // unified overview for doctor or customer
 
-  const response = await api.post("patients/", formData);
-  return response.data;
-};
-
-// UPDATE patient (ALL fields)
-export const updatePatient = async (id, patientData) => {
-  const formData = new FormData();
-
-  if (patientData.patient_id !== undefined && patientData.patient_id !== null) formData.append("patient_id", patientData.patient_id);
-  if (patientData.name !== undefined && patientData.name !== null) formData.append("name", patientData.name);
-  if (patientData.species !== undefined && patientData.species !== null) formData.append("species", patientData.species);
-  if (patientData.breed !== undefined && patientData.breed !== null) formData.append("breed", patientData.breed);
-  if (patientData.gender !== undefined && patientData.gender !== null) formData.append("gender", patientData.gender);
-  if (patientData.color !== undefined && patientData.color !== null) formData.append("color", patientData.color);
-  if (patientData.date_of_birth !== undefined && patientData.date_of_birth !== null) formData.append("date_of_birth", patientData.date_of_birth);
-  if (patientData.weight_kg !== undefined && patientData.weight_kg !== null) formData.append("weight_kg", patientData.weight_kg);
-  if (patientData.client !== undefined && patientData.client !== null) formData.append("client", patientData.client);
-
-  if (patientData.photo) {
-    formData.append("photo", patientData.photo);
-  }
-
-  const response = await api.put(`patients/${id}/`, formData);
-  return response.data;
-};
-
-// DELETE patient
-export const deletePatient = async (id) => {
-  const response = await api.delete(`patients/${id}/`);
-  return response.data;
-};
-
-/* =========================
-   CLIENT APIs
-========================= */
-
-// GET all clients
-export const getClients = async () => {
-  const response = await api.get("clients/");
-  return response.data;
-};
-
-export default api;
-
-
-
-
-
-
-
-
-
-
-
-
-
+export default API;
