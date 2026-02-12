@@ -10,7 +10,20 @@ import Patients from "./pages/Patients";
 import Visits from "./pages/Visits";
 import Appointments from "./pages/Appointments";
 import Receipts from "./pages/Receipts";
-import Overview from "./pages/Overview";
+
+// Import both overview pages
+import DoctorOverview from "./pages/DoctorOverview";
+import CustomerOverview from "./pages/CustomerOverview";
+
+// Dynamic Overview component
+function Overview() {
+  const role = getRole();
+
+  if (role === "doctor") return <DoctorOverview />;
+  if (role === "customer") return <CustomerOverview />;
+
+  return <Navigate to="/login" />;
+}
 
 function PrivateRoute({ children, allowedRoles }) {
   const role = getRole();
