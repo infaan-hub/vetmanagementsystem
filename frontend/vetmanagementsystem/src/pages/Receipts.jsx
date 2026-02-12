@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import API from "../api";
-import Navbar from "../Navbar";
+import Navbar from "../components/Navbar";
 
 export default function Receipts() {
   const [receipts, setReceipts] = useState([]);

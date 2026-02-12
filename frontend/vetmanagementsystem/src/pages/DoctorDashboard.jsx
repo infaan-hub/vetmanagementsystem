@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import API from "../api";
-import Navbar from "../Navbar";
-import OverviewCard from "../OverviewCard";
+import Navbar from "../components/Navbar";
+import OverviewCard from "../components/OverviewCard";
 
 export default function DoctorDashboard() {
   const [stats, setStats] = useState({

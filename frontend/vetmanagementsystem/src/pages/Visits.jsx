@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import API from "../api";
-import Navbar from "../Navbar";
-import VisitCard from "../VisitCard";
+import Navbar from "../components/Navbar";
+import VisitCard from "../components/VisitCard";
 
 export default function Visits() {
   const [visits, setVisits] = useState([]);

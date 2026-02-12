@@ -128,3 +128,35 @@ class ReceiptSerializer(serializers.ModelSerializer):
         model = Receipt
         fields = "__all__"
 
+
+class ClientLoginSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150, required=True)
+    password = serializers.CharField(min_length=8, write_only=True, required=True)
+
+
+class DoctorRegistrationSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150, required=True)
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(min_length=8, write_only=True, required=True)
+    first_name = serializers.CharField(max_length=150, required=False)
+    last_name = serializers.CharField(max_length=150, required=False)
+
+    def create(self, validated_data):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password'],
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', ''),
+            is_staff=True
+        )
+        
+        return user
+
+
+class DoctorLoginSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150, required=True)
+    password = serializers.CharField(min_length=8, write_only=True, required=True)

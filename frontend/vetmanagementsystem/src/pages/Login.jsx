@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import API from "../api";
 import { useNavigate } from "react-router-dom";
+import { setRole } from "../utils/auth";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -12,11 +13,34 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await API.post("/login/", form);
-      localStorage.setItem("token", res.data.token);
-      if (res.data.role === "doctor") navigate("/doctor-dashboard");
-      else navigate("/customer-dashboard");
+      // Try customer login first
+      let res;
+      try {
+        res = await API.post("/login/", form);
+      } catch (customerErr) {
+        // If customer login fails, try doctor login
+        if (customerErr.response?.status === 403) {
+          res = await API.post("/doctor/login/", form);
+        } else {
+          throw customerErr;
+        }
+      }
+
+      localStorage.setItem("access_token", res.data.access);
+      localStorage.setItem("refresh_token", res.data.refresh);
+      
+      // Get role and store it
+      const role = res.data.user?.role || (res.data.user?.is_staff ? "doctor" : "customer");
+      setRole(role);
+      
+      // Route based on role
+      if (role === "doctor") {
+        navigate("/doctor-dashboard");
+      } else {
+        navigate("/customer-dashboard");
+      }
     } catch (err) {
+      console.error("Login error:", err);
       setError(err.response?.data?.detail || "Login failed");
     }
   };

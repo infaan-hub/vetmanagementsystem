@@ -1,12 +1,10 @@
-// src/api.js
 import axios from "axios";
 
 // ------------------
 // Tokens (from localStorage)
 // ------------------
-let ACCESS_TOKEN = localStorage.getItem("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwOTI5MDA4LCJpYXQiOjE3NzA5MjU0MDgsImp0aSI6IjNiOGJkNTFkMmFkZjQwM2JhMGFjODE3MzU4NWZiMmJiIiwidXNlcl9pZCI6IjEifQ.CluHtEcaT5RHHQuRYP-oz-TMEvSCgCbYehzZTqJoQ44") || null;
-
-let REFRESH_TOKEN = localStorage.getItem("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MTAxMTgwOCwiaWF0IjoxNzcwOTI1NDA4LCJqdGkiOiI2Y2M3ODA2NGE3NjY0MzdlYmJkN2QwMzJkYjUwZTE5NCIsInVzZXJfaWQiOiIxIn0.GlQRGwOE5Gkdiz1HgeW4xBGc2dqkIJLUo8hjyYba6tw") || null;
+let ACCESS_TOKEN = localStorage.getItem("access_token") || null;
+let REFRESH_TOKEN = localStorage.getItem("refresh_token") || null;
 
 
 // ------------------
@@ -21,6 +19,10 @@ const API = axios.create({
 // ------------------
 API.interceptors.request.use(
   (req) => {
+    // Refresh token from localStorage on each request
+    ACCESS_TOKEN = localStorage.getItem("access_token") || null;
+    REFRESH_TOKEN = localStorage.getItem("refresh_token") || null;
+    
     if (ACCESS_TOKEN) {
       req.headers.Authorization = `Bearer ${ACCESS_TOKEN}`;
     }
@@ -42,6 +44,7 @@ API.interceptors.response.use(
       originalRequest._retry = true;
 
       // if no refresh token, force logout
+      REFRESH_TOKEN = localStorage.getItem("refresh_token");
       if (!REFRESH_TOKEN) {
         localStorage.clear();
         window.location.href = "/login";
@@ -93,8 +96,8 @@ export const getOverview = () => API.get("overview/"); // unified overview
 export function setTokens(access, refresh) {
   ACCESS_TOKEN = access || null;
   REFRESH_TOKEN = refresh || null;
-  if (access) localStorage.setItem("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwOTI5MDA4LCJpYXQiOjE3NzA5MjU0MDgsImp0aSI6IjNiOGJkNTFkMmFkZjQwM2JhMGFjODE3MzU4NWZiMmJiIiwidXNlcl9pZCI6IjEifQ.CluHtEcaT5RHHQuRYP-oz-TMEvSCgCbYehzZTqJoQ44", access);
-  if (refresh) localStorage.setItem("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MTAxMTgwOCwiaWF0IjoxNzcwOTI1NDA4LCJqdGkiOiI2Y2M3ODA2NGE3NjY0MzdlYmJkN2QwMzJkYjUwZTE5NCIsInVzZXJfaWQiOiIxIn0.GlQRGwOE5Gkdiz1HgeW4xBGc2dqkIJLUo8hjyYba6tw", refresh);
+  if (access) localStorage.setItem("access_token", access);
+  if (refresh) localStorage.setItem("refresh_token", refresh);
 }
 
 export default API;

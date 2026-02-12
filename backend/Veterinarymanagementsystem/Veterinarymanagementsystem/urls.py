@@ -24,19 +24,33 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
+# Import auth views
+from Vetmanagementsystem.auth_views import (
+    ClientRegistrationView,
+    ClientLoginView,
+    DoctorRegistrationView,
+    DoctorLoginView,
+)
+
 urlpatterns = [
     # Admin
     path('admin/', admin.site.urls),
+
+    # Auth APIs
+    path('api/register/', ClientRegistrationView.as_view(), name='api-register'),
+    path('api/login/', ClientLoginView.as_view(), name='api-login'),
+    path('api/doctor/register/', DoctorRegistrationView.as_view(), name='api-doctor-register'),
+    path('api/doctor/login/', DoctorLoginView.as_view(), name='api-doctor-login'),
+
+    # JWT token endpoints
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     # App URLs
     path('', include('Vetmanagementsystem.urls')),
 
     # DRF login (optional, browsable API)
     path('api-auth/', include('rest_framework.urls')),
-
-    # JWT endpoints
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
 
 # Media files (development only)

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import API from "../api";
-import Navbar from "../Navbar";
-import PatientCard from "../PatientCard";
+import Navbar from "../components/Navbar";
+import PatientCard from "../components/PatientCard";
 
 export default function Patients() {
   const [patients, setPatients] = useState([]);
