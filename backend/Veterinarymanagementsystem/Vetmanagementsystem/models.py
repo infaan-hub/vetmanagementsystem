@@ -1,20 +1,27 @@
 # Vetmanagementsystem/models.py
 from django.db import models
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.utils import timezone
+from django.contrib.auth.models import AbstractUser
 
 
 class CustomUser(AbstractUser):
-    """
-    Custom user model. Use is_staff to mark doctors.
-    """
-    groups = models.ManyToManyField(Group, related_name="custom_users", blank=True)
-    user_permissions = models.ManyToManyField(
-        Permission, related_name="custom_user_permissions", blank=True
-    )
+    full_name = models.CharField(max_length=150)
+    username = models.CharField(max_length=150, unique=True)
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=256)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+
+    client_id = models.CharField(max_length=10, unique=True, null=True, blank=True)
+
+    
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.username
+
 
 
 class DoctorProfile(models.Model):
@@ -43,11 +50,7 @@ class Client(models.Model):
     phone = models.CharField(max_length=20, blank=True)
 
     def __str__(self):
-        return self.full_name
-
-
-
- 
+        return self.full_name 
 
 
 

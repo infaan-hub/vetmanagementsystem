@@ -3,15 +3,14 @@ import axios from "axios";
 // ------------------
 // Tokens (from localStorage)
 // ------------------
-let ACCESS_TOKEN = localStorage.getItem("access_token") || null;
-let REFRESH_TOKEN = localStorage.getItem("refresh_token") || null;
-
+let ACCESS_TOKEN = localStorage.getItem("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwOTk5MjgxLCJpYXQiOjE3NzA5OTU2ODEsImp0aSI6IjUwMTg2MWZiZTAwMjQ2YTc4NTRiNjVhMDIzYjY3YjJmIiwidXNlcl9pZCI6IjEifQ.e8NP2G3fFoKhMGPIR29o2KhIspksCazr_3O5h779VRE") || null;
+let REFRESH_TOKEN = localStorage.getItem("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MTA4MjA4MSwiaWF0IjoxNzcwOTk1NjgxLCJqdGkiOiI2N2M2YjgyZmY4MjU0OGM3ODFlNjIwMmJhOWM0ZWIzZSIsInVzZXJfaWQiOiIxIn0.-OWtEJ3S491jIgYqmXhDwdoFrDEJ4v4Ar8DYpj5Lg6w") || null;
 
 // ------------------
 // Axios instance
 // ------------------
 const API = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/", // change if your backend URL is different
+  baseURL: "http://127.0.0.1:8000/api/", // change if backend URL is different
 });
 
 // ------------------
@@ -19,10 +18,9 @@ const API = axios.create({
 // ------------------
 API.interceptors.request.use(
   (req) => {
-    // Refresh token from localStorage on each request
     ACCESS_TOKEN = localStorage.getItem("access_token") || null;
     REFRESH_TOKEN = localStorage.getItem("refresh_token") || null;
-    
+
     if (ACCESS_TOKEN) {
       req.headers.Authorization = `Bearer ${ACCESS_TOKEN}`;
     }
@@ -39,11 +37,9 @@ API.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Retry only once
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      // if no refresh token, force logout
       REFRESH_TOKEN = localStorage.getItem("refresh_token");
       if (!REFRESH_TOKEN) {
         localStorage.clear();
@@ -57,15 +53,12 @@ API.interceptors.response.use(
           { refresh: REFRESH_TOKEN }
         );
 
-        // update tokens in memory & localStorage
         ACCESS_TOKEN = res.data.access;
         localStorage.setItem("access_token", ACCESS_TOKEN);
 
-        // retry original request with new token
         originalRequest.headers.Authorization = `Bearer ${ACCESS_TOKEN}`;
         return API(originalRequest);
       } catch (err) {
-        // refresh failed -> logout
         localStorage.clear();
         window.location.href = "/login";
         return Promise.reject(err);
@@ -88,10 +81,10 @@ export const getMedications = () => API.get("medications/");
 export const getDocuments = () => API.get("documents/");
 export const getAllergies = () => API.get("allergies/");
 export const getTreatments = () => API.get("treatments/");
-export const getOverview = () => API.get("overview/"); // unified overview
+export const getOverview = () => API.get("overview_customer/"); // client overview
 
 // ------------------
-// Helper to set tokens after login
+// Set tokens after login
 // ------------------
 export function setTokens(access, refresh) {
   ACCESS_TOKEN = access || null;

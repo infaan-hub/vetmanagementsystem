@@ -4,6 +4,8 @@ import { getRole } from "./utils/auth";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import DoctorRegister from "./pages/DoctorRegister";
+import DoctorLogin from "./pages/DoctorLogin";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import Patients from "./pages/Patients";
@@ -11,7 +13,7 @@ import Visits from "./pages/Visits";
 import Appointments from "./pages/Appointments";
 import Receipts from "./pages/Receipts";
 
-// Import both overview pages
+// Import overview pages
 import DoctorOverview from "./pages/DoctorOverview";
 import CustomerOverview from "./pages/CustomerOverview";
 
@@ -25,6 +27,7 @@ function Overview() {
   return <Navigate to="/login" />;
 }
 
+// PrivateRoute for role-based access
 function PrivateRoute({ children, allowedRoles }) {
   const role = getRole();
   if (!role || !allowedRoles.includes(role)) {
@@ -40,6 +43,11 @@ function App() {
         <Route path="/" element={<Navigate to="/overview" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+        {/* Doctor auth pages */}
+        <Route path="/doctor/register" element={<DoctorRegister />} />
+        <Route path="/doctor/login" element={<DoctorLogin />} />
+        <Route path="/doctor" element={<Navigate to="/doctor-dashboard" />} />
 
         {/* Doctor routes */}
         <Route

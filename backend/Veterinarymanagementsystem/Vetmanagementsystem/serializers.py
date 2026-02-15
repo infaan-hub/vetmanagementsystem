@@ -1,162 +1,121 @@
 # Vetmanagementsystem/serializers.py
 from rest_framework import serializers
+from django.contrib.auth.models import User
 from .models import (
-    CustomUser,
-    DoctorProfile,
-    Client,
-    Patient,
-    AllergyAlert,
-    Visit,
-    VitalSigns,
-    ClientCommunicationNote,
-    ClientNote,
-    Medication,
-    Document,
-    TreatmentPlan,
-    Appointment,
-    Receipt,
+    Client, Patient, Appointment, Receipt, Visit, AllergyAlert, VitalSigns,
+    ClientCommunicationNote, ClientNote, Medication, Document, TreatmentPlan,CustomUser
 )
 
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomUser
-        fields = ["id", "username", "email", "first_name", "last_name", "is_staff", "is_active"]
-
-
-class DoctorProfileSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-
-    class Meta:
-        model = DoctorProfile
-        fields = "__all__"
-
-from rest_framework import serializers
-from .models import Client
-
+# -------------------------
+# Client
+# -------------------------
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
-        fields = ['id', 'full_name', 'phone']  # exclude user  
+        fields = ["id", "full_name", "phone", "user"]
+
+class ClientRegistrationSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ["full_name", "username", "email", "password", "phone"]
 
 
+# -------------------------
+# Patient
+# -------------------------
 class PatientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
-        fields = "__all__"
+        fields = ["id", "name", "species", "breed", "client"]
 
 
-class AllergySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AllergyAlert
-        fields = "__all__"
-
-
-class VisitSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Visit
-        fields = "__all__"
-
-
-class VitalSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = VitalSigns
-        fields = "__all__"
-
-
-class CommunicationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ClientCommunicationNote
-        fields = "__all__"
-
-
-class MedicalNoteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ClientNote
-        fields = "__all__"
-
-
-class MedicationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Medication
-        fields = "__all__"
-
-
-class DocumentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Document
-        fields = "__all__"
-
-
-class TreatmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TreatmentPlan
-        fields = "__all__"
-
-
+# -------------------------
+# Appointment
+# -------------------------
 class AppointmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointment
-        fields = "__all__"
+        fields = ["id", "patient", "client", "appointment_date", "reason", "status"]
 
 
-class DoctorReceiptSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Receipt
-        fields = "__all__"
-
-
-class ClientReceiptSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Receipt
-        fields = ["id", "amount", "date", "status"]
-
-
-from rest_framework import serializers
-from .models import Appointment
-
-class AppointmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Appointment
-        fields = "__all__"
- 
-from rest_framework import serializers
-from .models import Receipt
-
+# -------------------------
+# Receipt
+# -------------------------
 class ReceiptSerializer(serializers.ModelSerializer):
     class Meta:
         model = Receipt
-        fields = "__all__"
+        fields = ["id", "client", "amount", "status", "issued_date"]
 
 
-class ClientLoginSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=150, required=True)
-    password = serializers.CharField(min_length=8, write_only=True, required=True)
+# -------------------------
+# Visit
+# -------------------------
+class VisitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Visit
+        fields = ["id", "patient", "visit_date", "reason"]
 
 
-class DoctorRegistrationSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=150, required=True)
-    email = serializers.EmailField(required=True)
-    password = serializers.CharField(min_length=8, write_only=True, required=True)
-    first_name = serializers.CharField(max_length=150, required=False)
-    last_name = serializers.CharField(max_length=150, required=False)
-
-    def create(self, validated_data):
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-        
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password'],
-            first_name=validated_data.get('first_name', ''),
-            last_name=validated_data.get('last_name', ''),
-            is_staff=True
-        )
-        
-        return user
+# -------------------------
+# Allergy
+# -------------------------
+class AllergySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AllergyAlert
+        fields = ["id", "patient", "allergy", "severity", "notes"]
 
 
-class DoctorLoginSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=150, required=True)
-    password = serializers.CharField(min_length=8, write_only=True, required=True)
+# -------------------------
+# Vital Signs
+# -------------------------
+class VitalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VitalSigns
+        fields = ["id", "visit", "temperature", "pulse", "respiration", "weight"]
+
+
+# -------------------------
+# Communication Notes
+# -------------------------
+class CommunicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClientCommunicationNote
+        fields = ["id", "patient", "note", "created_at"]
+
+
+# -------------------------
+# Medical Notes
+# -------------------------
+class MedicalNoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClientNote
+        fields = ["id", "patient", "note", "created_at"]
+
+
+# -------------------------
+# Medication
+# -------------------------
+class MedicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Medication
+        fields = ["id", "patient", "name", "dosage", "instructions"]
+
+
+# -------------------------
+# Document
+# -------------------------
+class DocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ["id", "patient", "file", "description"]
+
+
+# -------------------------
+# Treatment Plan
+# -------------------------
+class TreatmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TreatmentPlan
+        fields = ["id", "patient", "treatment_type", "notes", "start_date", "end_date"]
