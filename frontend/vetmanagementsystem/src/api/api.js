@@ -15,6 +15,7 @@ let REFRESH_TOKEN = localStorage.getItem("refresh_token") || null;
 const API = axios.create({
   baseURL: apiBaseUrl,
   withCredentials: true,
+  timeout: 20000,
 });
 
 // ------------------
@@ -95,6 +96,13 @@ export function setTokens(access, refresh) {
   REFRESH_TOKEN = refresh || null;
   if (access) localStorage.setItem("access_token", access);
   if (refresh) localStorage.setItem("refresh_token", refresh);
+}
+
+export function clearTokens() {
+  ACCESS_TOKEN = null;
+  REFRESH_TOKEN = null;
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
 }
 
 export default API;

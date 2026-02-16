@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import API from "../api";
+import API, { setTokens } from "../api";
 import { useNavigate } from "react-router-dom";
 import { setRole } from "../utils/auth";
 
@@ -31,13 +31,14 @@ export default function CustomerLogin() {
         }
       }
 
-      // Save tokens
-      localStorage.setItem("access_token", res.data.access);
-      localStorage.setItem("refresh_token", res.data.refresh);
+      if (!res.data?.access || !res.data?.refresh) {
+        throw new Error("Token response is missing access/refresh fields.");
+      }
+
+      setTokens(res.data.access, res.data.refresh);
 
       // Determine role
-      const role =
-        res.data.user?.role || (res.data.user?.is_staff ? "doctor" : "customer");
+      const role = res.data.user?.role || (res.data.user?.is_staff ? "doctor" : "customer");
       setRole(role);
 
       // Redirect based on role
