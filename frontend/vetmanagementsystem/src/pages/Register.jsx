@@ -22,12 +22,26 @@ export default function CustomerRegister() {
     setLoading(true);
 
     try {
-      await API.post("client/register/", form);
+      try {
+        await API.post("/client/register/", form);
+      } catch (err) {
+        // Fallback to auth endpoint used by backend auth_views
+        if (err?.response?.status === 404) {
+          await API.post("/register/", form);
+        } else {
+          throw err;
+        }
+      }
       navigate("/login");
     } catch (err) {
-      console.error("Registration error:", err.response?.data);
-      if (err.response?.data?.detail) setError(err.response.data.detail);
-      else setError("Registration failed");
+      const detail =
+        err?.response?.data?.detail ||
+        err?.response?.data?.username?.[0] ||
+        err?.response?.data?.email?.[0] ||
+        err?.response?.data?.password?.[0] ||
+        err?.message;
+      console.error("Registration error:", err?.response?.data || err?.message || err);
+      setError(detail || "Registration failed");
     } finally {
       setLoading(false);
     }
