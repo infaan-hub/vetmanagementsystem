@@ -3,7 +3,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
     Client, Patient, Appointment, Receipt, Visit, AllergyAlert, VitalSigns,
-    ClientCommunicationNote, ClientNote, Medication, Document, TreatmentPlan,CustomUser
+    ClientCommunicationNote, ClientNote, Medication, Document, TreatmentPlan,CustomUser,DoctorProfile,
 )
 
 # -------------------------
@@ -28,7 +28,7 @@ class ClientRegistrationSerializer(serializers.ModelSerializer):
 class PatientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
-        fields = ["id", "name", "species", "breed", "client"]
+        fields = ["id", "name", "species", "breed", "client", "patient_id"]
 
 
 # -------------------------
@@ -61,19 +61,22 @@ class VisitSerializer(serializers.ModelSerializer):
 # -------------------------
 # Allergy
 # -------------------------
-class AllergySerializer(serializers.ModelSerializer):
+class AllergyAlertSerializer(serializers.ModelSerializer):
     class Meta:
         model = AllergyAlert
-        fields = ["id", "patient", "allergy", "severity", "notes"]
+        fields = ["id", "patient", "description", "severity_level"]
 
 
 # -------------------------
 # Vital Signs
 # -------------------------
-class VitalSerializer(serializers.ModelSerializer):
+class VitalSignsSerializer(serializers.ModelSerializer):
+    visit = serializers.PrimaryKeyRelatedField(
+        queryset=Visit.objects.all(), required=False, allow_null=True
+    )
     class Meta:
         model = VitalSigns
-        fields = ["id", "visit", "temperature", "pulse", "respiration", "weight"]
+        fields = ["id", "visit", "temperature", "heart_rate", "respiration", "weight_lbs", "weight_oz"]
 
 
 # -------------------------
@@ -88,10 +91,10 @@ class CommunicationSerializer(serializers.ModelSerializer):
 # -------------------------
 # Medical Notes
 # -------------------------
-class MedicalNoteSerializer(serializers.ModelSerializer):
+class ClientNoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientNote
-        fields = ["id", "patient", "note", "created_at"]
+        fields = ["id", "note", "created_at", "visit"]
 
 
 # -------------------------
@@ -119,3 +122,16 @@ class TreatmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = TreatmentPlan
         fields = ["id", "patient", "treatment_type", "notes", "start_date", "end_date"]
+
+
+
+class DoctorSerializer(serializers.ModelSerializer):
+    specialization = serializers.CharField(
+        source="doctor_profile.specialization",
+        read_only=True
+    )
+
+    class Meta:
+        model = CustomUser
+        fields = ["id", "full_name", "username", "specialization"]
+

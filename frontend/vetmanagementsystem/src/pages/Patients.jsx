@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { Link, useLocation } from "react-router-dom";
 import API from "../api";
 
 export default function Patients() {
@@ -19,19 +20,25 @@ export default function Patients() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const photoRef = useRef(null);
+  const location = useLocation();
+
   useEffect(() => {
     loadPatients();
     loadClients();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadPatients() {
     setStatus("Loading patients...");
+    setError("");
     try {
       const res = await API.get("/patients/");
-      setPatients(res.data || []);
+      const data = res.data && res.data.results ? res.data.results : res.data;
+      setPatients(Array.isArray(data) ? data : []);
       setStatus("");
     } catch (err) {
-      console.error(err);
+      console.error("loadPatients error:", err);
       setStatus("Could not load patients.");
     }
   }
@@ -39,20 +46,20 @@ export default function Patients() {
   async function loadClients() {
     try {
       const res = await API.get("/clients/");
-      setClients(res.data || []);
-      // Auto-fill client if only one client exists
-      if (res.data?.length === 1) {
-        setForm((prev) => ({ ...prev, client: res.data[0].id }));
+      const data = res.data && res.data.results ? res.data.results : res.data;
+      setClients(Array.isArray(data) ? data : []);
+      if (Array.isArray(data) && data.length === 1) {
+        setForm((prev) => ({ ...prev, client: data[0].id }));
       }
     } catch (err) {
-      console.error(err);
+      console.error("loadClients error:", err);
     }
   }
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "photo") {
-      setForm((prev) => ({ ...prev, photo: files[0] }));
+      setForm((prev) => ({ ...prev, photo: files?.[0] || null }));
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
     }
@@ -67,7 +74,6 @@ export default function Patients() {
     setStatus("");
     setError("");
 
-    // Validate required fields
     if (!form.name || !form.species || !form.client) {
       setError("Please fill required fields: Name, Species, Client");
       setLoading(false);
@@ -76,12 +82,13 @@ export default function Patients() {
 
     const fd = new FormData();
     Object.entries(form).forEach(([key, value]) => {
-      if (value) fd.append(key, value);
+      if (value === null || value === undefined || value === "") return;
+      fd.append(key, value);
     });
     fd.append("patient_id", generatePatientId());
 
     try {
-      const res = await API.post("/patients/", fd, {
+      await API.post("/patients/", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setStatus("Patient added successfully.");
@@ -96,14 +103,89 @@ export default function Patients() {
         client: clients.length === 1 ? clients[0].id : "",
         photo: null,
       });
-      loadPatients();
+      if (photoRef.current) photoRef.current.value = "";
+      await loadPatients();
     } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.detail || "Submission failed");
+      console.error("submit error:", err);
+      if (err.response?.status === 401) {
+        setError("Not authenticated. Please login (401).");
+      } else if (err.response?.status === 500) {
+        // show helpful details for server errors
+        setError(
+          `Server error (500). See console for details. ${JSON.stringify(
+            err.response?.data
+          )}`
+        );
+      } else {
+        setError(
+          err.response?.data?.detail ||
+            (err.response && JSON.stringify(err.response.data)) ||
+            err.message ||
+            "Submission failed"
+        );
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  // Inline SVG fallback (data URI) so we don't rely on external placeholder host
+  const svgPlaceholder = (() => {
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='300' height='160'>
+      <rect width='100%' height='100%' fill='#eeeeee'/>
+      <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#888' font-family='Segoe UI, Arial' font-size='18'>No Photo</text>
+    </svg>`;
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  })();
+
+  // Build safe photo url (handles absolute urls, relative /media/... or object form)
+  const getPhotoUrl = (photo) => {
+    if (!photo) return svgPlaceholder;
+
+    // If API gave an object like { url: '/media/..' }
+    if (typeof photo === "object") {
+      if (photo.url) {
+        photo = photo.url;
+      } else {
+        return svgPlaceholder;
+      }
+    }
+
+    if (typeof photo !== "string") return svgPlaceholder;
+
+    // absolute
+    if (photo.startsWith("http://") || photo.startsWith("https://")) return photo;
+
+    // relative path starting with '/'
+    if (photo.startsWith("/")) return `${window.location.origin}${photo}`;
+
+    // fallback: assume media fileName and prefix /media/
+    return `${window.location.origin}/media/${photo}`;
+  };
+
+  // Sidebar requested items
+  const sidebarLinks = [
+    { to: "/overview", label: "Overview" },
+    { to: "/patients", label: "Patients" },
+    { to: "/allergies", label: "Allergies" },
+    { to: "/visits", label: "Visits" },
+    { to: "/vitals", label: "Vitals" },
+    { to: "/communications", label: "Communications" },
+    { to: "/medical-notes", label: "Medical Notes" },
+    { to: "/medications", label: "Medications" },
+    { to: "/documents", label: "Documents" },
+    { to: "/treatments", label: "Treatments" },
+  ];
+
+  const linkStyle = {
+    padding: "12px 16px",
+    borderRadius: "12px",
+    fontWeight: 600,
+    color: "#111",
+    textDecoration: "none",
+    display: "block",
+  };
+  const activeLinkStyle = { ...linkStyle, color: "#fff", background: "rgba(0,0,0,0.85)" };
 
   return (
     <div
@@ -119,6 +201,7 @@ export default function Patients() {
         display: "flex",
         gap: "20px",
         padding: "20px",
+        boxSizing: "border-box",
       }}
     >
       {/* Sidebar */}
@@ -134,66 +217,22 @@ export default function Patients() {
           flexShrink: 0,
         }}
       >
-        <h2 style={{ margin: 0, marginBottom: "20px", fontSize: 22 }}>
-          Veterinary Management System (VMS)🩺🐾
-        </h2>
+        <h2 style={{ margin: 0, marginBottom: "18px", fontSize: 20 }}>VMS 🩺🐾</h2>
         <nav style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <a
-            href="/home/"
-            style={{
-              padding: "12px 16px",
-              borderRadius: "12px",
-              fontWeight: 600,
-              color: "#111",
-              textDecoration: "none",
-            }}
-          >
-            Dashboard
-          </a>
-          <a
-            href="/patients/"
-            style={{
-              padding: "12px 16px",
-              borderRadius: "12px",
-              fontWeight: 600,
-              color: "#fff",
-              background: "rgba(0,0,0,0.85)",
-              textDecoration: "none",
-            }}
-          >
-            Patients
-          </a>
-          <a
-            href="/appointments/"
-            style={{
-              padding: "12px 16px",
-              borderRadius: "12px",
-              fontWeight: 600,
-              color: "#111",
-              textDecoration: "none",
-            }}
-          >
-            Appointments
-          </a>
-          <a
-            href="/receipts/"
-            style={{
-              padding: "12px 16px",
-              borderRadius: "12px",
-              fontWeight: 600,
-              color: "#111",
-              textDecoration: "none",
-            }}
-          >
-            Receipts
-          </a>
+          {sidebarLinks.map((l) => {
+            const isActive = location.pathname === l.to;
+            return (
+              <Link key={l.to} to={l.to} style={isActive ? activeLinkStyle : linkStyle}>
+                {l.label}
+              </Link>
+            );
+          })}
         </nav>
       </aside>
 
       {/* Main */}
       <main style={{ flex: 1 }}>
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: 0 }}>
-          {/* Hero */}
           <div
             style={{
               background: "rgba(255,255,255,0.72)",
@@ -208,33 +247,10 @@ export default function Patients() {
           >
             <h1 style={{ margin: "0 0 8px", fontSize: 28 }}>Patients🐾</h1>
             <p style={{ margin: 0, color: "#222" }}>
-              Register new patients and browse existing patients. Photo upload
-              and client assignment supported.
+              Register new patients and browse existing patients. Photo upload and client assignment supported.
             </p>
           </div>
 
-          {/* Back button */}
-          <div style={{ textAlign: "center", marginBottom: "14px" }}>
-            <a
-              href="/home/"
-              style={{
-                display: "inline-block",
-                padding: "10px 20px",
-                borderRadius: 999,
-                fontWeight: 700,
-                textDecoration: "none",
-                border: "1px solid rgba(0,0,0,0.12)",
-                background: "rgba(255,255,255,0.42)",
-                color: "#111",
-                cursor: "pointer",
-                transition: "all 0.18s ease",
-              }}
-            >
-              Back Home
-            </a>
-          </div>
-
-          {/* Form Card */}
           <div
             style={{
               maxWidth: 720,
@@ -247,17 +263,12 @@ export default function Patients() {
               padding: "18px",
             }}
           >
-            {error && (
-              <p style={{ color: "crimson", fontWeight: 700 }}>{error}</p>
-            )}
+            {error && <p style={{ color: "crimson", fontWeight: 700 }}>{error}</p>}
             {status && <p style={{ color: "#0b5cff", fontWeight: 600 }}>{status}</p>}
+
             <form
               onSubmit={handleSubmit}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 12,
-              }}
+              style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
             >
               {[
                 { label: "Patient Name", name: "name", required: true },
@@ -269,9 +280,7 @@ export default function Patients() {
                 { label: "Weight (kg)", name: "weight_kg", type: "number", step: "0.01", min: "0" },
               ].map((field) => (
                 <div key={field.name}>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>
-                    {field.label}
-                  </label>
+                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{field.label}</label>
                   <input
                     type={field.type || "text"}
                     name={field.name}
@@ -293,11 +302,8 @@ export default function Patients() {
                 </div>
               ))}
 
-              {/* Client select */}
               <div style={{ gridColumn: "1 / -1" }}>
-                <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>
-                  Client *
-                </label>
+                <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>Client *</label>
                 <select
                   name="client"
                   value={form.client}
@@ -314,22 +320,16 @@ export default function Patients() {
                 >
                   <option value="">Select client...</option>
                   {clients.map((c) => (
-                    <option key={c.id} value={c.id}>{c.full_name}</option>
+                    <option key={c.id} value={c.id}>
+                      {c.full_name || c.username || `Client ${c.id}`}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>
-                  Photo
-                </label>
-                <input
-                  type="file"
-                  name="photo"
-                  accept="image/*"
-                  onChange={handleChange}
-                  style={{ padding: 6 }}
-                />
+                <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>Photo</label>
+                <input ref={photoRef} type="file" name="photo" accept="image/*" onChange={handleChange} style={{ padding: 6 }} />
               </div>
 
               <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
@@ -353,49 +353,38 @@ export default function Patients() {
             </form>
           </div>
 
-          {/* Patients Grid */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-              gap: "18px",
-            }}
-          >
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "18px" }}>
             {patients.length === 0 && <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#444" }}>No patients yet.</p>}
-            {patients.map((p) => (
-              <div
-                key={p.id}
-                style={{
+
+            {patients.map((p) => {
+              const photo = p.photo || p.photo_url || p.image || p.photo_path;
+              const imgSrc = getPhotoUrl(photo);
+              return (
+                <div key={p.id} style={{
                   background: "rgba(255,255,255,0.72)",
                   backdropFilter: "blur(12px) saturate(120%)",
                   WebkitBackdropFilter: "blur(12px) saturate(120%)",
                   boxShadow: "0 18px 40px rgba(0,0,0,0.18)",
-                  borderRadius: 16,
-                  padding: 14,
-                  transition: "transform .18s ease, box-shadow .18s ease",
-                  overflow: "hidden",
-                }}
-              >
-                <img
-                  src={p.photo || "https://via.placeholder.com/300x160?text=No+Photo"}
-                  alt={p.name}
-                  style={{
-                    width: "100%",
-                    height: 160,
-                    objectFit: "cover",
-                    borderRadius: 10,
-                    marginBottom: 10,
-                    background: "#eee",
-                  }}
-                />
-                <div style={{ fontSize: 14, color: "#222", lineHeight: 1.4 }}>
-                  <strong>{p.name}</strong><br />
-                  {p.species} {p.breed ? "• " + p.breed : ""}<br />
-                  {p.gender ? "Gender: " + p.gender + " • " : ""}
-                  {p.date_of_birth ? "DOB: " + p.date_of_birth : ""}
+                  borderRadius: 16, padding: 14, transition: "transform .18s ease, box-shadow .18s ease", overflow: "hidden"
+                }}>
+                  <img
+                    src={imgSrc}
+                    alt={p.name || "Patient"}
+                    style={{ width: "100%", height: 160, objectFit: "cover", borderRadius: 10, marginBottom: 10, background: "#eee" }}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = svgPlaceholder;
+                    }}
+                  />
+                  <div style={{ fontSize: 14, color: "#222", lineHeight: 1.4 }}>
+                    <strong>{p.name || "Unnamed"}</strong><br />
+                    {p.species} {p.breed ? "• " + p.breed : ""}<br />
+                    {p.gender ? "Gender: " + p.gender + (p.date_of_birth ? " • " : "") : ""}
+                    {p.date_of_birth ? `DOB: ${p.date_of_birth}` : ""}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </main>

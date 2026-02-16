@@ -30,6 +30,7 @@ from Vetmanagementsystem.auth_views import (
     ClientLoginView,
     DoctorRegistrationView,
     DoctorLoginView,
+    
 )
 
 urlpatterns = [

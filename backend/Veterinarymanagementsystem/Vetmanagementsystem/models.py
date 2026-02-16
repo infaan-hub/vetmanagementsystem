@@ -105,7 +105,13 @@ class Visit(models.Model):
 
 
 class VitalSigns(models.Model):
-    visit = models.ForeignKey(Visit, on_delete=models.CASCADE, related_name="vitals")
+    visit = models.ForeignKey(
+        Visit,
+        on_delete=models.CASCADE,
+        related_name="vitals",
+        blank=True,
+        null=True  # <--- allow nulls
+    )
     weight_lbs = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
     weight_oz = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
     temperature = models.DecimalField(max_digits=4, decimal_places=1, blank=True, null=True)
@@ -114,7 +120,7 @@ class VitalSigns(models.Model):
     recorded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Vitals for {self.visit.patient.name}"
+        return f"Vitals for {self.visit.patient.name if self.visit else 'Unknown'}"
 
 
 class ClientCommunicationNote(models.Model):

@@ -12,10 +12,17 @@ import Patients from "./pages/Patients";
 import Visits from "./pages/Visits";
 import Appointments from "./pages/Appointments";
 import Receipts from "./pages/Receipts";
+import Allergies from "./pages/Allergies";
+import Vitals from "./pages/Vitals";
+import Communications from "./pages/Communications";
+import MedicalNotes from "./pages/MedicalNotes";
+import Documents from "./pages/Documents";
+import Treatments from "./pages/Treatments";
+import Medications from "./pages/Medications";
 
-// Import overview pages
 import DoctorOverview from "./pages/DoctorOverview";
 import CustomerOverview from "./pages/CustomerOverview";
+
 
 // Dynamic Overview component
 function Overview() {
@@ -24,32 +31,44 @@ function Overview() {
   if (role === "doctor") return <DoctorOverview />;
   if (role === "customer") return <CustomerOverview />;
 
-  return <Navigate to="/login" />;
+  return <Navigate to="/login" replace />;
 }
+
 
 // PrivateRoute for role-based access
 function PrivateRoute({ children, allowedRoles }) {
   const role = getRole();
+
   if (!role || !allowedRoles.includes(role)) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
+
   return children;
 }
+
 
 function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
-        <Route path="/" element={<Navigate to="/overview" />} />
+
+        {/* Default */}
+        <Route path="/" element={<Navigate to="/overview" replace />} />
+
+        {/* Auth */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Doctor auth pages */}
+        {/* Doctor auth */}
         <Route path="/doctor/register" element={<DoctorRegister />} />
         <Route path="/doctor/login" element={<DoctorLogin />} />
-        <Route path="/doctor" element={<Navigate to="/doctor-dashboard" />} />
 
-        {/* Doctor routes */}
+        {/* Doctor dashboard redirect */}
+        <Route path="/doctor" element={<Navigate to="/doctor-dashboard" replace />} />
+
+
+        {/* ================= DOCTOR ROUTES ================= */}
+
         <Route
           path="/doctor-dashboard"
           element={
@@ -58,6 +77,7 @@ function App() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/patients"
           element={
@@ -66,6 +86,7 @@ function App() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/visits"
           element={
@@ -75,7 +96,72 @@ function App() {
           }
         />
 
-        {/* Customer routes */}
+        <Route
+          path="/allergies"
+          element={
+            <PrivateRoute allowedRoles={["doctor"]}>
+              <Allergies />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/vitals"
+          element={
+            <PrivateRoute allowedRoles={["doctor"]}>
+              <Vitals />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/communications"
+          element={
+            <PrivateRoute allowedRoles={["doctor"]}>
+              <Communications />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/medical-notes"
+          element={
+            <PrivateRoute allowedRoles={["doctor"]}>
+              <MedicalNotes />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/documents"
+          element={
+            <PrivateRoute allowedRoles={["doctor"]}>
+              <Documents />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/treatments"
+          element={
+            <PrivateRoute allowedRoles={["doctor"]}>
+              <Treatments />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/medications"
+          element={
+            <PrivateRoute allowedRoles={["doctor"]}>
+              <Medications />
+            </PrivateRoute>
+          }
+        />
+
+
+        {/* ================= CUSTOMER ROUTES ================= */}
+
         <Route
           path="/customer-dashboard"
           element={
@@ -84,6 +170,7 @@ function App() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/appointments"
           element={
@@ -92,6 +179,7 @@ function App() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/receipts"
           element={
@@ -101,7 +189,9 @@ function App() {
           }
         />
 
-        {/* Shared overview */}
+
+        {/* ================= SHARED ================= */}
+
         <Route
           path="/overview"
           element={
@@ -110,6 +200,12 @@ function App() {
             </PrivateRoute>
           }
         />
+
+
+        {/* ================= FALLBACK ================= */}
+
+        <Route path="*" element={<Navigate to="/overview" replace />} />
+
       </Routes>
     </Router>
   );
