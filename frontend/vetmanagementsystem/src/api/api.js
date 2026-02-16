@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const backendUrl =
-  process.env.REACT_APP_BACKEND_URL || "https://vetmanagementsystem-tati.onrender.com";
+  import.meta.env.VITE_BACKEND_URL || "https://vetmanagementsystem-tati.onrender.com";
 const apiBaseUrl = `${backendUrl}/api/`;
 
 let ACCESS_TOKEN = localStorage.getItem("access_token") || null;
