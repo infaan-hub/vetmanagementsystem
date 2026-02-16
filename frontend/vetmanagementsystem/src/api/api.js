@@ -15,7 +15,7 @@ let REFRESH_TOKEN = localStorage.getItem("refresh_token") || null;
 const API = axios.create({
   baseURL: apiBaseUrl,
   withCredentials: true,
-  timeout: 20000,
+  timeout: 60000,
 });
 
 // ------------------
@@ -41,8 +41,15 @@ API.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config;
+    const isTimeout = error.code === "ECONNABORTED";
+    const isNetworkError = error.message === "Network Error";
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if ((isTimeout || isNetworkError) && !originalRequest?._networkRetry) {
+      originalRequest._networkRetry = true;
+      return API(originalRequest);
+    }
+
+    if (error.response?.status === 401 && !originalRequest?._retry) {
       originalRequest._retry = true;
 
       REFRESH_TOKEN = localStorage.getItem("refresh_token");
