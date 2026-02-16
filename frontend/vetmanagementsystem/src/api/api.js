@@ -1,16 +1,18 @@
 import axios from "axios";
 
-// ------------------
-// Tokens (from localStorage)
-// ------------------
-let ACCESS_TOKEN = localStorage.getItem("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwOTk5MjgxLCJpYXQiOjE3NzA5OTU2ODEsImp0aSI6IjUwMTg2MWZiZTAwMjQ2YTc4NTRiNjVhMDIzYjY3YjJmIiwidXNlcl9pZCI6IjEifQ.e8NP2G3fFoKhMGPIR29o2KhIspksCazr_3O5h779VRE") || null;
-let REFRESH_TOKEN = localStorage.getItem("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MTA4MjA4MSwiaWF0IjoxNzcwOTk1NjgxLCJqdGkiOiI2N2M2YjgyZmY4MjU0OGM3ODFlNjIwMmJhOWM0ZWIzZSIsInVzZXJfaWQiOiIxIn0.-OWtEJ3S491jIgYqmXhDwdoFrDEJ4v4Ar8DYpj5Lg6w") || null;
+const backendUrl =
+  process.env.REACT_APP_BACKEND_URL || "https://vetmanagementsystem-tati.onrender.com";
+const apiBaseUrl = `${backendUrl}/api/`;
+
+let ACCESS_TOKEN = localStorage.getItem("access_token") || null;
+let REFRESH_TOKEN = localStorage.getItem("refresh_token") || null;
 
 // ------------------
 // Axios instance
 // ------------------
 const API = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/", // change if backend URL is different
+  baseURL: apiBaseUrl,
+  withCredentials: true,
 });
 
 // ------------------
@@ -49,7 +51,7 @@ API.interceptors.response.use(
 
       try {
         const res = await axios.post(
-          "http://127.0.0.1:8000/api/token/refresh/",
+          `${backendUrl}/api/token/refresh/`,
           { refresh: REFRESH_TOKEN }
         );
 
