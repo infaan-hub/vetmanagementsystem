@@ -29,7 +29,7 @@ from .models import (
     Document,
     TreatmentPlan,
     CustomUser,
-    DoctorProfile,
+    
 
    
 )
@@ -48,7 +48,7 @@ from .serializers import (
     DocumentSerializer,
     TreatmentSerializer,
     ClientRegistrationSerializer,
-    DoctorSerializer
+    
 )
 
 # ============================================================
@@ -348,7 +348,7 @@ class ClientNoteViewSet(ModelViewSet):
             return ClientNote.objects.all()
 
         return ClientNote.objects.filter(
-            patient__client=_client_for_user(user)
+            visit__patient__client=_client_for_user(user)
         )
 
 
@@ -365,7 +365,7 @@ class MedicationViewSet(ModelViewSet):
             return Medication.objects.all()
 
         return Medication.objects.filter(
-            patient__client=_client_for_user(user)
+            visit__patient__client=_client_for_user(user)
         )
 
 
@@ -399,7 +399,7 @@ class TreatmentViewSet(ModelViewSet):
             return TreatmentPlan.objects.all()
 
         return TreatmentPlan.objects.filter(
-            patient__client=_client_for_user(user)
+            visit__patient__client=_client_for_user(user)
         )
 
 
@@ -496,24 +496,4 @@ class OverviewCustomerAPIView(APIView):
 
         })
     
-
-from rest_framework.viewsets import ReadOnlyModelViewSet
-from rest_framework.permissions import AllowAny
-from rest_framework.authentication import TokenAuthentication
-from .models import CustomUser
-from .serializers import DoctorSerializer
-
-
-class DoctorViewSet(ReadOnlyModelViewSet):
-
-    serializer_class = DoctorSerializer
-
-    # ✅ disable CSRF requirement
-    authentication_classes = []  
-    permission_classes = [AllowAny]
-
-    def get_queryset(self):
-        return CustomUser.objects.filter(
-            doctor_profile__is_active=True
-        ).select_related("doctor_profile")
 

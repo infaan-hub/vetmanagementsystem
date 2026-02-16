@@ -2,14 +2,13 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
-from .views import DoctorViewSet 
+
 
 router = DefaultRouter()
 
 # -------------------------
 # Doctor-only APIs
 # -------------------------
-router.register("doctors", DoctorViewSet, basename="doctors")
 router.register(r"allergies", views.AllergyAlertViewSet, basename="allergies")
 router.register(r"visits", views.VisitViewSet, basename="visits")
 router.register(r"vitals", views.VitalSignsViewSet, basename="vitals")

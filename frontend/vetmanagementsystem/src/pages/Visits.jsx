@@ -15,9 +15,9 @@ export default function Visits() {
     age_months: "",
     notes: "",
   });
-  const [status, setStatus] = useState("");
-  const [debug, setDebug] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingPatients, setLoadingPatients] = useState(false);
+  const [loadingVisits, setLoadingVisits] = useState(false);
 
   // Load initial data
   useEffect(() => {
@@ -26,6 +26,12 @@ export default function Visits() {
     loadVisits();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function toList(data) {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.results)) return data.results;
+    return [];
+  }
 
   function getCSRFToken() {
     const cookieString = document.cookie || "";
@@ -44,106 +50,141 @@ export default function Visits() {
     if (!resData) return "Unknown";
     if (typeof resData === "string") return resData;
     if (Array.isArray(resData)) return resData.join(", ");
-    if (typeof resData === "object")
+    if (typeof resData === "object") {
       return Object.entries(resData)
-        .map(([k, v]) =>
-          Array.isArray(v) ? `${k}: ${v.join(", ")}` : `${k}: ${v}`
-        )
+        .map(([k, v]) => (Array.isArray(v) ? `${k}: ${v.join(", ")}` : `${k}: ${v}`))
         .join(" | ");
+    }
     return JSON.stringify(resData);
   }
 
-  // Fetch patients
-  async function loadPatients() {
-    try {
-      const res = await API.get("/patients/");
-      setPatients(res.data || []);
-      if (res.data && res.data.length === 1) {
-        setForm((p) => ({ ...p, patient: res.data[0].id }));
-      }
-    } catch (err) {
-      console.error("loadPatients:", err);
-      setStatus("Could not load patients");
-      setDebug(err);
-    }
+  function toLocalDateTimeInputValue(date) {
+    const d = new Date(date);
+    const pad = (v) => String(v).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const mi = pad(d.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
   }
 
-  // Fetch vets
-  async function loadVets() {
-    try {
-      const res = await API.get("/users/");
-      setVets(res.data || []);
-    } catch (err) {
-      console.error("loadVets:", err);
-      setDebug(err);
-    }
-  }
-
-  // Fetch visits
-  async function loadVisits() {
-    try {
-      const res = await API.get("/visits/");
-      setVisits(res.data || []);
-    } catch (err) {
-      console.error("loadVisits:", err);
-      setStatus("Could not load visits");
-      setDebug(err);
-    }
-  }
-
-  // Handle form submission
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setStatus("");
-    setDebug(null);
-
-    if (!form.patient) return setStatus("Select a patient");
-    if (!form.visit_date) return setStatus("Enter visit date");
-
-    setLoading(true);
-    const payload = {
+  async function postVisitWithFallback(headers) {
+    const base = {
       patient: form.patient,
-      veterinarian: form.veterinarian || null,
       visit_date: form.visit_date,
+    };
+
+    const primaryPayload = {
+      ...base,
+      veterinarian: form.veterinarian || null,
       visit_status: form.visit_status,
       location_status: form.location_status || "",
       age_months: form.age_months || null,
       notes: form.notes || "",
     };
 
+    const secondaryPayload = {
+      ...base,
+      reason: form.notes || "",
+    };
+
+    try {
+      return await API.post("/visits/", primaryPayload, { headers });
+    } catch (err) {
+      const responseData = err?.response?.data;
+      const hasNotesError =
+        responseData &&
+        typeof responseData === "object" &&
+        Object.prototype.hasOwnProperty.call(responseData, "notes");
+      const hasNonFieldError =
+        Array.isArray(responseData?.non_field_errors) &&
+        responseData.non_field_errors.length > 0;
+
+      if (err?.response?.status === 400 && (hasNotesError || hasNonFieldError)) {
+        return API.post("/visits/", secondaryPayload, { headers });
+      }
+      throw err;
+    }
+  }
+
+  // Fetch patients
+  async function loadPatients() {
+    setLoadingPatients(true);
+    try {
+      const res = await API.get("/patients/");
+      const list = toList(res.data);
+      setPatients(list);
+      if (list.length === 1) {
+        setForm((p) => ({ ...p, patient: list[0].id ?? list[0].patient_id ?? "" }));
+      }
+    } catch (err) {
+      console.error("loadPatients:", err);
+    } finally {
+      setLoadingPatients(false);
+    }
+  }
+
+  // Fetch vets
+  async function loadVets() {
+    const endpoints = ["/users/", "/auth/users/", "/doctors/"];
+    let loaded = [];
+    for (const endpoint of endpoints) {
+      try {
+        const res = await API.get(endpoint);
+        loaded = toList(res.data);
+        if (loaded.length > 0) break;
+      } catch (_err) {
+        // try the next endpoint
+      }
+    }
+    setVets(loaded);
+  }
+
+  // Fetch visits
+  async function loadVisits() {
+    setLoadingVisits(true);
+    try {
+      const res = await API.get("/visits/");
+      const list = toList(res.data).sort((a, b) => {
+        const aDate = a?.visit_date ? new Date(a.visit_date).getTime() : 0;
+        const bDate = b?.visit_date ? new Date(b.visit_date).getTime() : 0;
+        return bDate - aDate;
+      });
+      setVisits(list);
+    } catch (err) {
+      console.error("loadVisits:", err);
+    } finally {
+      setLoadingVisits(false);
+    }
+  }
+
+  // Handle form submission
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    if (!form.patient || !form.visit_date) return;
+
+    setLoading(true);
     try {
       const csrf = getCSRFToken();
-      if (!csrf) {
-        setStatus("CSRF token missing");
-        return;
-      }
+      const headers = {};
+      if (csrf) headers["X-CSRFToken"] = csrf;
 
-      const res = await API.post("/visits/", payload, {
-        headers: { "X-CSRFToken": csrf },
-      });
+      await postVisitWithFallback(headers);
 
-      setStatus("Visit added successfully!");
-      setDebug(res.data);
       setForm({
-        patient: "",
+        patient: form.patient,
         veterinarian: "",
-        visit_date: "",
+        visit_date: toLocalDateTimeInputValue(new Date()),
         visit_status: "Checked-in",
         location_status: "",
         age_months: "",
         notes: "",
       });
-      loadVisits();
-      loadPatients();
+      await loadVisits();
     } catch (err) {
-      console.error("submit visit:", err);
-      const detail =
-        err?.response?.data ||
-        err?.response?.statusText ||
-        err?.message ||
-        "Submission failed";
-      setStatus("Error: " + (typeof detail === "string" ? detail : JSON.stringify(detail)));
-      setDebug(err?.response?.data ?? err?.toString());
+      console.error("submit visit:", formatApiErrors(err?.response?.data || err?.message || err));
     } finally {
       setLoading(false);
     }
@@ -271,15 +312,14 @@ input,select,textarea{
   box-sizing:border-box;
 }
 textarea{min-height:80px;padding:10px;border-radius:12px}
-.status{margin-top:10px;font-weight:600}
 
-/* ===== Notes Cards ===== */
-.notes{
+/* ===== Visits Cards ===== */
+.visits{
   display:grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap:18px;
 }
-.note-card{
+.visit-card{
   background:var(--card-bg);
   backdrop-filter: blur(12px) saturate(120%);
   box-shadow: var(--card-shadow);
@@ -288,11 +328,11 @@ textarea{min-height:80px;padding:10px;border-radius:12px}
   transition: transform .18s ease, box-shadow .18s ease;
   overflow:hidden;
 }
-.note-card:hover{
+.visit-card:hover{
   transform: translateY(-6px);
   box-shadow:0 30px 60px rgba(0,0,0,0.25);
 }
-.meta{font-size:14px;color:#222;line-height:1.4;}
+.visit-meta{font-size:14px;color:#222;line-height:1.4;}
 
 @media(max-width:960px){.form-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.form-grid{grid-template-columns:1fr}.container{padding:20px}}
@@ -330,18 +370,13 @@ textarea{min-height:80px;padding:10px;border-radius:12px}
               <div className="form-grid">
                 <div>
                   <label>Patient</label>
-                  <select
-                    name="patient"
-                    value={form.patient}
-                    onChange={handleChange}
-                    required
-                  >
+                  <select name="patient" value={form.patient} onChange={handleChange} required>
                     <option value="">
-                      {patients.length ? "Select patient" : "Loading patients..."}
+                      {patients.length ? "Select patient" : (loadingPatients ? "Loading patients..." : "No patients found")}
                     </option>
                     {patients.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} — {p.patient_id}
+                      <option key={p.id ?? p.patient_id} value={p.id ?? p.patient_id}>
+                        {p.name} {p.patient_id ? `— ${p.patient_id}` : ""}
                       </option>
                     ))}
                   </select>
@@ -349,15 +384,11 @@ textarea{min-height:80px;padding:10px;border-radius:12px}
 
                 <div>
                   <label>Veterinarian (optional)</label>
-                  <select
-                    name="veterinarian"
-                    value={form.veterinarian}
-                    onChange={handleChange}
-                  >
-                    <option value="">{vets.length ? "(not assigned)" : "Loading vets..."}</option>
+                  <select name="veterinarian" value={form.veterinarian} onChange={handleChange}>
+                    <option value="">{vets.length ? "(not assigned)" : "No vets endpoint found"}</option>
                     {vets.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.full_name || v.username}
+                      <option key={v.id ?? v.pk ?? v.username} value={v.id ?? v.pk ?? v.username}>
+                        {v.full_name || v.username || v.email || v.id}
                       </option>
                     ))}
                   </select>
@@ -365,23 +396,12 @@ textarea{min-height:80px;padding:10px;border-radius:12px}
 
                 <div>
                   <label>Visit date & time</label>
-                  <input
-                    type="datetime-local"
-                    name="visit_date"
-                    value={form.visit_date}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input type="datetime-local" name="visit_date" value={form.visit_date} onChange={handleChange} required />
                 </div>
 
                 <div>
                   <label>Visit status</label>
-                  <select
-                    name="visit_status"
-                    value={form.visit_status}
-                    onChange={handleChange}
-                    required
-                  >
+                  <select name="visit_status" value={form.visit_status} onChange={handleChange} required>
                     <option value="Checked-in">Checked-in</option>
                     <option value="Ready for discharge">Ready for discharge</option>
                     <option value="Discharged">Discharged</option>
@@ -401,13 +421,7 @@ textarea{min-height:80px;padding:10px;border-radius:12px}
 
                 <div>
                   <label>Age (months)</label>
-                  <input
-                    type="number"
-                    name="age_months"
-                    value={form.age_months}
-                    onChange={handleChange}
-                    min="0"
-                  />
+                  <input type="number" name="age_months" value={form.age_months} onChange={handleChange} min="0" />
                 </div>
 
                 <div className="full">
@@ -426,38 +440,32 @@ textarea{min-height:80px;padding:10px;border-radius:12px}
                   {loading ? "Adding..." : "Add Visit"}
                 </button>
               </div>
-
-              <p className="status" style={{ color: status.startsWith("Error") ? "crimson" : "green" }}>
-                {status}
-              </p>
-              {debug && (
-                <pre style={{ marginTop: 8, color: "#444", fontSize: 13 }}>
-                  {JSON.stringify(debug, null, 2)}
-                </pre>
-              )}
             </form>
           </div>
 
           <div className="visits">
-            {visits.length === 0 && <p style={{ gridColumn: "1/-1", color: "#333" }}>No visits yet.</p>}
+            {!loadingVisits && visits.length === 0 && <p style={{ gridColumn: "1/-1", color: "#333" }}>No visits yet.</p>}
             {visits.map((v) => {
               const patientLabel = v.patient_name || v.patient_display || v.patient || v.patient_id || "-";
               const vetLabel = v.veterinarian_name || v.veterinarian_display || v.veterinarian || "(not set)";
               const date = v.visit_date ? new Date(v.visit_date).toLocaleString() : "-";
+              const noteText = v.notes || v.reason || "";
               return (
-                <div key={v.id} className="visit-card">
+                <div key={v.id ?? `${patientLabel}-${date}`} className="visit-card">
                   <div className="visit-meta">
-                    <strong>Patient: {patientLabel}</strong><br/>
-                    <small>{date}</small>
+                    <strong>Patient: {String(patientLabel)}</strong>
+                    <br />
+                    <small>{String(date)}</small>
                     <p style={{ margin: "8px 0 0" }}>
-                      Status: {v.visit_status || "-"}<br/>
-                      Location: {v.location_status || "-"}<br/>
-                      Age (months): {v.age_months ?? "-"}<br/>
-                      Vet: {vetLabel}
+                      Status: {v.visit_status || "-"}
+                      <br />
+                      Location: {v.location_status || "-"}
+                      <br />
+                      Age (months): {v.age_months ?? "-"}
+                      <br />
+                      Vet: {String(vetLabel)}
                     </p>
-                    <p style={{ marginTop: 8, color: "#333" }}>
-                      {v.notes ? v.notes.substring(0, 220) : ""}
-                    </p>
+                    <p style={{ marginTop: 8, color: "#333" }}>{noteText ? String(noteText).substring(0, 220) : ""}</p>
                   </div>
                 </div>
               );

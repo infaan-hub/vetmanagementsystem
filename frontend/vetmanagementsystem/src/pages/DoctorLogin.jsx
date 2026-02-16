@@ -20,86 +20,95 @@ export default function DoctorLogin() {
     try {
       const res = await API.post("/doctor/login/", form);
 
-      // Save tokens
       localStorage.setItem("access_token", res.data.access);
       localStorage.setItem("refresh_token", res.data.refresh);
+      localStorage.setItem("username", form.username);
+      if (res.data?.email) localStorage.setItem("email", res.data.email);
 
       setRole("doctor");
       navigate("/doctor-dashboard");
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.detail || "Login failed");
+      setError(err?.response?.data?.detail || "Login failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "#f0f2f5",
-        padding: "20px",
-      }}
-    >
-      <div
-        style={{
-          background: "rgba(255,255,255,0.85)",
-          padding: "30px",
-          borderRadius: 14,
-          boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
-          maxWidth: 360,
-          width: "100%",
-        }}
-      >
-        <h1 style={{ marginTop: 0 }}>Doctor Login</h1>
+    <div className="login-root">
+      <style>{`
+:root{
+  --card-bg: rgba(255,255,255,0.72);
+  --card-shadow: 0 18px 40px rgba(0,0,0,0.18);
+}
 
-        {error && (
-          <div style={{ color: "red", fontWeight: 600, marginBottom: 10 }}>
-            {error}
-          </div>
-        )}
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: repeat;
+}
 
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column", gap: 12 }}
-        >
-          <input
-            name="username"
-            placeholder="Username"
-            value={form.username}
-            onChange={handleChange}
-            required
-            style={{ padding: 10, borderRadius: 10, fontSize: 16 }}
-          />
-          <input
-            name="password"
-            type="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={handleChange}
-            required
-            style={{ padding: 10, borderRadius: 10, fontSize: 16 }}
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              padding: 10,
-              borderRadius: 999,
-              border: "none",
-              background: loading ? "rgba(0,0,0,0.2)" : "#0b5cff",
-              color: "#fff",
-              fontWeight: 700,
-              cursor: loading ? "default" : "pointer",
-            }}
-          >
-            {loading ? "Logging in…" : "Login"}
+.login-root{
+  min-height:100vh;
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px;
+}
+
+.card {
+  width: min(92vw, 400px);
+  padding: 36px 34px;
+  border-radius: 18px;
+  background: var(--card-bg);
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  box-shadow: var(--card-shadow);
+  text-align: center;
+  color: #111;
+}
+
+h1 { margin: 0 0 16px; font-size: 24px; }
+form { display: flex; flex-direction: column; gap: 14px; text-align: left; }
+label { font-weight: 600; }
+input { padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.12); font-size: 14px; }
+button { padding: 12px; border-radius: 999px; border: 1px solid rgba(0,0,0,0.12); background: rgba(255,255,255,0.42); font-weight: 700; cursor: pointer; transition: transform .18s ease, background .18s ease, color .18s ease; }
+button:hover { transform: translateY(-3px); background: rgba(0,0,0,0.85); color: #fff; }
+button:disabled { opacity: .75; cursor: default; transform: none; }
+p.error { color: red; margin: 0 0 10px; font-weight: 600; }
+.switch-login { text-align: center; margin-top: 12px; }
+.switch-login a { color: #333; text-decoration: underline; font-weight: 600; }
+
+@media (max-width: 420px) { .card { padding: 24px; border-radius: 14px; } }
+      `}</style>
+
+      <div className="card">
+        <h1>Veterinary Management System Doctor🩺🐾 Login</h1>
+        {error ? <p className="error">{error}</p> : null}
+        <form onSubmit={handleSubmit}>
+          <label>Username:</label>
+          <input type="text" name="username" value={form.username} onChange={handleChange} required />
+
+          <label>Password:</label>
+          <input type="password" name="password" value={form.password} onChange={handleChange} required />
+
+          <button type="submit" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
+        <div className="switch-login">
+          <p>
+            Customer? <a href="/login">Login here</a>
+          </p>
+        </div>
       </div>
     </div>
   );

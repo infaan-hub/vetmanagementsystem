@@ -18,6 +18,8 @@ export default function MedicalNotes() {
   const [status, setStatus] = useState("");
   const [debug, setDebug] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingPatients, setLoadingPatients] = useState(false);
+  const [loadingVisits, setLoadingVisits] = useState(false);
 
   useEffect(() => {
     loadPatients();
@@ -26,20 +28,44 @@ export default function MedicalNotes() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function toList(data) {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.results)) return data.results;
+    return [];
+  }
+
+  function toId(value) {
+    if (!value || typeof value !== "object") return value;
+    return value.id ?? value.pk ?? value.patient_id ?? "";
+  }
+
   async function loadPatients() {
+    setLoadingPatients(true);
     try {
       const res = await API.get("/patients/");
-      setPatients(res.data || []);
+      setPatients(toList(res.data));
     } catch (err) {
       console.error("loadPatients:", err);
       setStatus("Could not load patients.");
+    } finally {
+      setLoadingPatients(false);
     }
   }
 
   async function loadVets() {
+    const endpoints = ["/users/", "/auth/users/", "/doctors/"];
     try {
-      const res = await API.get("/users/"); // adjust if users endpoint differs
-      setVets(res.data || []);
+      let loaded = [];
+      for (const endpoint of endpoints) {
+        try {
+          const res = await API.get(endpoint);
+          loaded = toList(res.data);
+          if (loaded.length > 0) break;
+        } catch (_err) {
+          // try the next endpoint
+        }
+      }
+      setVets(loaded);
     } catch (err) {
       console.error("loadVets:", err);
       // not critical
@@ -47,27 +73,40 @@ export default function MedicalNotes() {
   }
 
   async function loadVisitsForPatient(patientId) {
+    setLoadingVisits(true);
     setVisits([]);
     setForm((s) => ({ ...s, visit: "" }));
-    if (!patientId) return;
+    if (!patientId) {
+      setLoadingVisits(false);
+      return;
+    }
     try {
-      const res = await API.get(`/visits/?patient=${patientId}`);
-      const list = res.data || [];
-      setVisits(list);
-      // Auto-select the latest visit if present
-      if (Array.isArray(list) && list.length > 0) {
-        setForm((s) => ({ ...s, visit: list[0].id }));
+      const res = await API.get(`/visits/?patient=${encodeURIComponent(patientId)}`);
+      const list = toList(res.data);
+      const filtered = list.filter((v) => String(toId(v?.patient)) === String(patientId));
+      const usable = filtered.length ? filtered : list;
+      setVisits(usable);
+
+      if (usable.length > 0) {
+        const sorted = [...usable].sort((a, b) => {
+          const aDate = a?.visit_date ? new Date(a.visit_date).getTime() : 0;
+          const bDate = b?.visit_date ? new Date(b.visit_date).getTime() : 0;
+          return bDate - aDate;
+        });
+        setForm((s) => ({ ...s, visit: toId(sorted[0]) }));
       }
     } catch (err) {
       console.warn("Could not load visits for patient:", err);
       // leave visits empty
+    } finally {
+      setLoadingVisits(false);
     }
   }
 
   async function loadNotes() {
     try {
       const res = await API.get("/medical-notes/");
-      setNotes(res.data || []);
+      setNotes(toList(res.data));
     } catch (err) {
       console.error("loadNotes:", err);
       setStatus("Could not load medical notes.");
@@ -80,16 +119,6 @@ export default function MedicalNotes() {
       if (c.startsWith("csrftoken=")) return decodeURIComponent(c.split("=")[1]);
     }
     return null;
-  }
-
-  function escapeHtml(str) {
-    if (typeof str !== "string") return "";
-    return str
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
   }
 
   function handleChange(e) {
@@ -117,15 +146,10 @@ export default function MedicalNotes() {
 
     setLoading(true);
 
-    // Backend ClientNote expects `visit` and `note`
+    // Backend ClientNote serializer accepts only `visit` and `note`.
     const payload = {
       visit: form.visit,
       note: form.body,
-      // Optional extras — server may ignore them, but we don't rely on them:
-      // title, note_type, veterinarian are not required by model but kept for context if your backend handles them.
-      title: form.title || undefined,
-      note_type: form.note_type || undefined,
-      veterinarian: form.veterinarian || undefined,
     };
 
     try {
@@ -134,11 +158,13 @@ export default function MedicalNotes() {
       if (csrf) headers["X-CSRFToken"] = csrf;
 
       const res = await API.post("/medical-notes/", payload, { headers });
+      const selectedPatient = form.patient;
       setStatus("Medical note added!");
       setDebug(res.data);
+
       // reset but keep patient selected (and visits) to allow quick multi-add
       setForm({
-        patient: form.patient,
+        patient: selectedPatient,
         visit: "",
         note_type: "Observation",
         veterinarian: "",
@@ -146,7 +172,7 @@ export default function MedicalNotes() {
         body: "",
       });
       // reload visits for the patient (server may create note -> visit unchanged)
-      if (form.patient) await loadVisitsForPatient(form.patient);
+      if (selectedPatient) await loadVisitsForPatient(selectedPatient);
       await loadNotes();
     } catch (err) {
       console.error("submit note:", err);
@@ -162,12 +188,11 @@ export default function MedicalNotes() {
     }
   }
 
-  // Helper to derive a readable label from a visit or note record
+  // Helper to derive a readable label from a visit record
   function visitLabelFromVisit(v) {
     if (!v) return "";
     if (v.summary) return v.summary;
     if (v.visit_date) return v.visit_date;
-    // try nested patient
     if (v.patient && (v.patient.name || v.patient.patient_id)) {
       return `${v.patient.name || "Patient"}${v.patient.patient_id ? ` — ${v.patient.patient_id}` : ""}`;
     }
@@ -175,7 +200,7 @@ export default function MedicalNotes() {
   }
 
   return (
-    <div className="layout">
+    <div>
       <style>{`
 :root{
   --card-bg: rgba(255,255,255,0.72);
@@ -365,9 +390,11 @@ textarea{min-height:80px;padding:10px;border-radius:12px}
                       onChange={handleChange}
                       required
                     >
-                      <option value="">{patients.length ? "Select patient" : "Loading patients..."}</option>
+                      <option value="">
+                        {patients.length ? "Select patient" : (loadingPatients ? "Loading patients..." : "No patients found")}
+                      </option>
                       {patients.map((p) => (
-                        <option key={p.id ?? p.patient_id ?? p.patient_id} value={p.id ?? p.patient_id}>
+                        <option key={p.id ?? p.patient_id} value={p.id ?? p.patient_id}>
                           {p.name ?? p.patient_name ?? `#${p.patient_id ?? p.id}`}
                           {p.patient_id ? ` — ${p.patient_id}` : ""}
                         </option>
@@ -387,7 +414,9 @@ textarea{min-height:80px;padding:10px;border-radius:12px}
                       onChange={handleChange}
                       required
                     >
-                      <option value="">{visits.length ? "Select visit" : "Select patient first"}</option>
+                      <option value="">
+                        {visits.length ? "Select visit" : (loadingVisits ? "Loading visits..." : "Select patient first")}
+                      </option>
                       {visits.map((v) => (
                         <option key={v.id ?? v.pk} value={v.id ?? v.pk}>
                           {visitLabelFromVisit(v)}
@@ -410,7 +439,7 @@ textarea{min-height:80px;padding:10px;border-radius:12px}
                   <div>
                     <label>Veterinarian (optional)</label>
                     <select id="vetSelect" name="veterinarian" value={form.veterinarian} onChange={handleChange}>
-                      <option value="">{vets.length ? "(not assigned)" : "Loading vets..."}</option>
+                      <option value="">{vets.length ? "(not assigned)" : "No vets endpoint found"}</option>
                       {vets.map((u) => (
                         <option key={u.id ?? u.pk ?? u.username} value={u.id ?? u.pk ?? u.username}>
                           {u.full_name || u.get_full_name || u.username || u.email || u.id}
@@ -461,34 +490,38 @@ textarea{min-height:80px;padding:10px;border-radius:12px}
 
             <div className="notes" id="notesGrid" aria-live="polite">
               {notes.length === 0 && <p style={{ gridColumn: "1/-1", color: "#333" }}>No medical notes yet.</p>}
-              {notes.map((n) => {
-                // Notes returned from API may vary. Try to display visit/patient info if nested.
+              {notes.map((n, index) => {
                 const visitObj = n.visit || n.visit_detail || null;
                 const patientLabel =
                   visitObj?.patient?.name ||
                   n.patient_name ||
                   n.patient_display ||
+                  (typeof n.visit === "number" || typeof n.visit === "string" ? `Visit #${n.visit}` : "") ||
                   (visitObj?.patient?.patient_id ? `#${visitObj.patient.patient_id}` : "") ||
                   "-";
                 const vetLabel = n.veterinarian_name || n.veterinarian_display || n.veterinarian || "(not set)";
-                const title = n.title ? escapeHtml(n.title) : "";
+                const title = n.title || "";
                 const created = n.created_at ? new Date(n.created_at).toLocaleString() : "-";
                 const type = n.note_type || "(type not set)";
-                // note text might be in field `note` or `body`
                 const noteText = n.note ?? n.body ?? "";
-                const bodyHtml = noteText ? escapeHtml(noteText).replace(/\n/g, "<br/>") : "";
+
                 return (
-                  <div key={n.id ?? (n.pk ?? Math.random())} className="note-card" role="article">
-                    <div
-                      className="meta"
-                      dangerouslySetInnerHTML={{
-                        __html: `${title ? `<strong>${title}</strong><br/>` : ""}<small>Patient: ${escapeHtml(
-                          String(patientLabel)
-                        )} • ${escapeHtml(String(type))}</small><div style="margin-top:6px;color:#666;font-size:13px">Vet: ${escapeHtml(
-                          String(vetLabel)
-                        )} · ${escapeHtml(String(created))}</div>${bodyHtml}`,
-                      }}
-                    />
+                  <div key={n.id ?? n.pk ?? `note-${index}`} className="note-card" role="article">
+                    <div className="meta">
+                      {title ? (
+                        <>
+                          <strong>{title}</strong>
+                          <br />
+                        </>
+                      ) : null}
+                      <small>
+                        Patient: {String(patientLabel)} • {String(type)}
+                      </small>
+                      <div style={{ marginTop: 6, color: "#666", fontSize: 13 }}>
+                        Vet: {String(vetLabel)} · {String(created)}
+                      </div>
+                      <div style={{ marginTop: 6, whiteSpace: "pre-wrap" }}>{noteText}</div>
+                    </div>
                   </div>
                 );
               })}

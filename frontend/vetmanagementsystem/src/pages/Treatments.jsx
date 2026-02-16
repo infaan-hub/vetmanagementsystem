@@ -4,9 +4,11 @@ import API from "../api"; // your axios instance with credentials
 
 export default function Treatments() {
   const [patients, setPatients] = useState([]);
+  const [visits, setVisits] = useState([]);
   const [treatments, setTreatments] = useState([]);
   const [form, setForm] = useState({
     patient: "",
+    visit: "",
     name: "",
     date: "",
     veterinarian: "",
@@ -20,20 +22,51 @@ export default function Treatments() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function toList(data) {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.results)) return data.results;
+    return [];
+  }
+
   async function loadPatients() {
     try {
       const res = await API.get("/patients/");
-      setPatients(res.data || []);
+      const list = toList(res.data);
+      setPatients(list);
     } catch (err) {
       console.error(err);
       setPatients([]);
     }
   }
 
+  async function loadVisitsForPatient(patientId) {
+    setVisits([]);
+    setForm((s) => ({ ...s, visit: "" }));
+    if (!patientId) return;
+    try {
+      const res = await API.get(`/visits/?patient=${encodeURIComponent(patientId)}`);
+      const list = toList(res.data);
+      const filtered = list.filter((v) => String(v?.patient?.id ?? v?.patient) === String(patientId));
+      const usable = filtered.length ? filtered : list;
+      setVisits(usable);
+      if (usable.length > 0) {
+        const sorted = [...usable].sort((a, b) => {
+          const aDate = a?.visit_date ? new Date(a.visit_date).getTime() : 0;
+          const bDate = b?.visit_date ? new Date(b.visit_date).getTime() : 0;
+          return bDate - aDate;
+        });
+        setForm((s) => ({ ...s, visit: sorted[0]?.id ?? sorted[0]?.pk ?? "" }));
+      }
+    } catch (err) {
+      console.error(err);
+      setVisits([]);
+    }
+  }
+
   async function loadTreatments() {
     try {
       const res = await API.get("/treatments/");
-      setTreatments(res.data || []);
+      setTreatments(toList(res.data));
     } catch (err) {
       console.error(err);
       setStatus("Error loading treatments");
@@ -51,6 +84,9 @@ export default function Treatments() {
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    if (name === "patient") {
+      loadVisitsForPatient(value);
+    }
   }
 
   async function handleSubmit(e) {
@@ -61,12 +97,16 @@ export default function Treatments() {
       setStatus("Please fill required fields.");
       return;
     }
+    if (!form.visit) {
+      setStatus("No visit found for selected patient. Create a visit first.");
+      return;
+    }
 
     const payload = {
       patient: form.patient,
+      visit: form.visit,
       name: form.name,
       date: form.date || null,
-      veterinarian: form.veterinarian || null,
       description: form.description || "",
     };
 
@@ -75,11 +115,19 @@ export default function Treatments() {
         headers: { "X-CSRFToken": getCSRFToken() },
       });
       setStatus("Treatment added!");
-      setForm({ patient: "", name: "", date: "", veterinarian: "", description: "" });
+      setForm((s) => ({
+        patient: s.patient,
+        visit: s.visit,
+        name: "",
+        date: "",
+        veterinarian: "",
+        description: "",
+      }));
       loadTreatments();
     } catch (err) {
       console.error(err);
-      setStatus("Error adding treatment");
+      const detail = err?.response?.data || err?.message || "Error adding treatment";
+      setStatus(typeof detail === "string" ? detail : JSON.stringify(detail));
     }
   }
 
@@ -228,6 +276,13 @@ textarea{resize:vertical;min-height:100px;}
                         </option>
                       ))}
                     </select>
+                    <div style={{ marginTop: 6, color: "#444", fontSize: 13 }}>
+                      {form.patient
+                        ? visits.length
+                          ? `Auto-selected latest visit (#${form.visit || "-"})`
+                          : "No visits for this patient"
+                        : ""}
+                    </div>
                   </div>
                   <div>
                     <label>Treatment Name</label>
