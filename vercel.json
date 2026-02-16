@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd frontend/vetmanagementsystem && npm install && npm run build",
+  "outputDirectory": "frontend/vetmanagementsystem/dist",
+  "installCommand": "cd frontend/vetmanagementsystem && npm install",
+  "framework": "vite"
+}
