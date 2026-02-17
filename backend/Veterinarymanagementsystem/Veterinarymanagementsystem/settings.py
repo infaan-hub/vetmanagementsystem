@@ -37,7 +37,7 @@ DEBUG = False
 
 
 
-ALLOWED_HOSTS = [h.strip() for h in os.getenv("https://veterinarymanagementsystem-backendpart.onrender.com", "*").split(",") if h.strip()]
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
