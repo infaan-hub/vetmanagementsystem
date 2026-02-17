@@ -34,7 +34,7 @@ SECRET_KEY = 'django-insecure-a20g6!l#%oxr=ez-eo@*7fv@-&)366*t$afs%)nxf!hch_ncf6
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
 
-ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "*").split(",") if h.strip()]
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("https://veterinarymanagementsystem-backendpart.onrender.com", "*").split(",") if h.strip()]
 
 # Application definition
 
