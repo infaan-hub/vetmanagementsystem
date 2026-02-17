@@ -14,6 +14,10 @@ from pathlib import Path
 import os
 import dj_database_url
 
+def _csv_env(name, default=""):
+    value = os.getenv(name, default)
+    return [item.strip() for item in value.split(",") if item.strip()]
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -58,20 +62,18 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# CORS Configuration
-CORS_ALLOWED_ORIGINS = [
+# CORS/CSRF Configuration
+DEFAULT_FRONTEND_ORIGINS = ",".join([
     "https://vetmanagementsystem-infan.vercel.app",
     "https://vetmanagementsystem-infaan.vercel.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-]
+])
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://vetmanagementsystem-infan.vercel.app",
-    "https://vetmanagementsystem-infaan.vercel.app",
-]
+CORS_ALLOWED_ORIGINS = _csv_env("CORS_ALLOWED_ORIGINS", DEFAULT_FRONTEND_ORIGINS)
+CSRF_TRUSTED_ORIGINS = _csv_env("CSRF_TRUSTED_ORIGINS", DEFAULT_FRONTEND_ORIGINS)
 
 CORS_ALLOW_CREDENTIALS = True
 

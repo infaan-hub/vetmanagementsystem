@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: vetmanagement-backend
+    env: python
+    rootDir: backend/Veterinarymanagementsystem
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
+    startCommand: gunicorn Veterinarymanagementsystem.wsgi:application
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "*"
+
+staticSites:
+  - name: vetmanagement-frontend
+    rootDir: frontend/vetmanagementsystem
+    buildCommand: npm ci && npm run build
+    publishPath: build
+    pullRequestPreviewsEnabled: true
