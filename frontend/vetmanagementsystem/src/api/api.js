@@ -4,7 +4,7 @@ const configuredBackend =
   import.meta.env.VITE_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
 
 const backendUrl = (
-  configuredBackend || "http://127.0.0.1:8000"
+  configuredBackend || "https://veterinarymanagementsystem-backendpart.onrender.com"
 ).replace(/\/+$/, "");
 const apiBaseUrl = `${backendUrl}/api/`;
 
