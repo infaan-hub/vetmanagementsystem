@@ -95,10 +95,10 @@ p.error { color: red; margin: 0 0 10px; font-weight: 600; }
         {error ? <p className="error">{error}</p> : null}
         <form onSubmit={handleSubmit}>
           <label>Username:</label>
-          <input type="text" name="username" value={form.username} onChange={handleChange} required />
+          <input type="text" name="username" autoComplete="username" value={form.username} onChange={handleChange} required />
 
           <label>Password:</label>
-          <input type="password" name="password" value={form.password} onChange={handleChange} required />
+          <input type="password" name="password" autoComplete="current-password" value={form.password} onChange={handleChange} required />
 
           <button type="submit" disabled={loading}>
             {loading ? "Logging in..." : "Login"}

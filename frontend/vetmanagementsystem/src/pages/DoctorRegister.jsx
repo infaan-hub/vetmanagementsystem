@@ -106,6 +106,7 @@ export default function DoctorRegister() {
           <input
             name="username"
             placeholder="Username"
+            autoComplete="username"
             value={form.username}
             onChange={handleChange}
             required
@@ -121,6 +122,7 @@ export default function DoctorRegister() {
             name="email"
             placeholder="Email"
             type="email"
+            autoComplete="email"
             value={form.email}
             onChange={handleChange}
             required
@@ -136,6 +138,7 @@ export default function DoctorRegister() {
             name="password"
             placeholder="Password"
             type="password"
+            autoComplete="new-password"
             value={form.password}
             onChange={handleChange}
             required
@@ -150,6 +153,7 @@ export default function DoctorRegister() {
           <input
             name="first_name"
             placeholder="First Name"
+            autoComplete="given-name"
             value={form.first_name}
             onChange={handleChange}
             style={{
@@ -163,6 +167,7 @@ export default function DoctorRegister() {
           <input
             name="last_name"
             placeholder="Last Name"
+            autoComplete="family-name"
             value={form.last_name}
             onChange={handleChange}
             style={{
@@ -189,6 +194,7 @@ export default function DoctorRegister() {
           <input
             name="phone"
             placeholder="Phone"
+            autoComplete="tel"
             value={form.phone}
             onChange={handleChange}
             style={{

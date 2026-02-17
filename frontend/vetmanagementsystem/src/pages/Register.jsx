@@ -104,6 +104,7 @@ export default function CustomerRegister() {
           <input
             id="full_name"
             name="full_name"
+            autoComplete="name"
             value={form.full_name}
             onChange={handleChange}
             required
@@ -120,6 +121,7 @@ export default function CustomerRegister() {
           <input
             id="username"
             name="username"
+            autoComplete="username"
             value={form.username}
             onChange={handleChange}
             required
@@ -137,6 +139,7 @@ export default function CustomerRegister() {
             id="email"
             type="email"
             name="email"
+            autoComplete="email"
             value={form.email}
             onChange={handleChange}
             required
@@ -154,6 +157,7 @@ export default function CustomerRegister() {
             id="password"
             type="password"
             name="password"
+            autoComplete="new-password"
             value={form.password}
             onChange={handleChange}
             required

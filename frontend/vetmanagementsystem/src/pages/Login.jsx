@@ -118,6 +118,7 @@ export default function CustomerLogin() {
           <input
             id="username"
             name="username"
+            autoComplete="username"
             value={form.username}
             onChange={handleChange}
             required
@@ -135,6 +136,7 @@ export default function CustomerLogin() {
             id="password"
             type="password"
             name="password"
+            autoComplete="current-password"
             value={form.password}
             onChange={handleChange}
             required
