@@ -33,6 +33,9 @@ SECRET_KEY = 'django-insecure-a20g6!l#%oxr=ez-eo@*7fv@-&)366*t$afs%)nxf!hch_ncf6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
+DEBUG = False
+
+
 
 ALLOWED_HOSTS = [h.strip() for h in os.getenv("https://veterinarymanagementsystem-backendpart.onrender.com", "*").split(",") if h.strip()]
 
@@ -193,3 +196,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
