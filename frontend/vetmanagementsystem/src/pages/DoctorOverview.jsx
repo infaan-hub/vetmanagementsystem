@@ -222,7 +222,7 @@ body{
                 <br />
                 {email}
               </p>
-              <a href="/login">Logout</a>
+              <a href="/logout?role=doctor">Logout</a>
             </div>
           </div>
         </div>

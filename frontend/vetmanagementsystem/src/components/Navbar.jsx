@@ -30,7 +30,7 @@ export default function Navbar({ role }) {
           </>
         )}
         <Link to="/overview">Overview</Link>
-        <Link to="/login" onClick={() => localStorage.clear()}>Logout</Link>
+        <Link to="/logout">Logout</Link>
       </div>
     </nav>
   );

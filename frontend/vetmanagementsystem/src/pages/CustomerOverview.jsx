@@ -111,12 +111,12 @@ body{
       <aside className="sidebar">
         <h2>🩺 VMS Customer</h2>
         <nav className="nav">
-          <a href="/">Dashboard</a>
-          <a className="active" href="/customer/overview/">
+          <a href="/customer-dashboard">Dashboard</a>
+          <a className="active" href="/overview">
             Overview
           </a>
-          <a href="/appointments/">Appointment</a>
-          <a href="/receipts/">Receipts</a>
+          <a href="/appointments">Appointment</a>
+          <a href="/receipts">Receipts</a>
         </nav>
       </aside>
 
@@ -138,7 +138,7 @@ body{
                 <br />
                 {email}
               </p>
-              <a href="/login">Logout</a>
+              <a href="/logout?role=customer">Logout</a>
             </div>
           </div>
         </div>

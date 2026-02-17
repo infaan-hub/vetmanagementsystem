@@ -1,10 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import API from "../api";
 import { logout } from "../utils/auth";
 
 export default function CustomerDashboard() {
-  const navigate = useNavigate();
   const initialized = useRef(false);
   const chartRef = useRef(null);
 
@@ -402,8 +400,7 @@ body{
               <button
                 className="logout-btn"
                 onClick={() => {
-                  logout();
-                  navigate("/login");
+                  logout("customer");
                 }}
               >
                 Logout

@@ -14,6 +14,7 @@ from rest_framework import status
 from django.db.models import Sum, Count
 from django.db.models.functions import TruncMonth
 from django.contrib.auth.hashers import make_password
+from django.db import transaction
 
 from .models import (
     Client,
@@ -162,23 +163,28 @@ class ClientRegistrationView(APIView):
 
             data = serializer.validated_data
 
-            user = CustomUser.objects.create(
-                username=data["username"],
-                email=data.get("email", ""),
-                full_name=data.get("full_name", ""),
-                password=make_password(data["password"]),
-                phone=data.get("phone", ""),
-                address=data.get("address", ""),
-                is_staff=False
-            )
+            try:
+                with transaction.atomic():
+                    user = CustomUser.objects.create(
+                        username=data["username"],
+                        email=data.get("email", ""),
+                        full_name=data.get("full_name", ""),
+                        password=make_password(data["password"]),
+                        phone=data.get("phone", ""),
+                        address=data.get("address", ""),
+                        is_staff=False
+                    )
 
-            Client.objects.create(
-                user=user,
-                full_name=data.get("full_name", ""),
-                email=data.get("email", ""),
-                phone=data.get("phone", ""),
-                address=data.get("address", "")
-            )
+                    Client.objects.create(
+                        user=user,
+                        full_name=data.get("full_name", ""),
+                        phone=data.get("phone", ""),
+                    )
+            except Exception as e:
+                return Response(
+                    {"detail": f"Registration failed: {str(e)}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
             return Response(
                 {"detail": "Registration successful"},

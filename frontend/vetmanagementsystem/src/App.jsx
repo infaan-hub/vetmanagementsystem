@@ -2,10 +2,12 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { getRole } from "./utils/auth";
 
+import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import DoctorRegister from "./pages/DoctorRegister";
 import DoctorLogin from "./pages/DoctorLogin";
+import Logout from "./pages/Logout";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import Patients from "./pages/Patients";
@@ -31,16 +33,23 @@ function Overview() {
   if (role === "doctor") return <DoctorOverview />;
   if (role === "customer") return <CustomerOverview />;
 
-  return <Navigate to="/login" replace />;
+  return <Navigate to="/home" replace />;
 }
 
 
 // PrivateRoute for role-based access
 function PrivateRoute({ children, allowedRoles }) {
   const role = getRole();
+  const requiresDoctorOnly = allowedRoles.length === 1 && allowedRoles[0] === "doctor";
+  const loginPath = requiresDoctorOnly ? "/doctor/login" : "/login";
 
-  if (!role || !allowedRoles.includes(role)) {
-    return <Navigate to="/login" replace />;
+  if (!role) {
+    return <Navigate to={loginPath} replace />;
+  }
+
+  if (!allowedRoles.includes(role)) {
+    const roleHome = role === "doctor" ? "/doctor-dashboard" : "/customer-dashboard";
+    return <Navigate to={roleHome} replace />;
   }
 
   return children;
@@ -53,11 +62,13 @@ function App() {
       <Routes>
 
         {/* Default */}
-        <Route path="/" element={<Navigate to="/overview" replace />} />
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/home" element={<Home />} />
 
         {/* Auth */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/logout" element={<Logout />} />
 
         {/* Doctor auth */}
         <Route path="/doctor/register" element={<DoctorRegister />} />
@@ -204,7 +215,7 @@ function App() {
 
         {/* ================= FALLBACK ================= */}
 
-        <Route path="*" element={<Navigate to="/overview" replace />} />
+        <Route path="*" element={<Navigate to="/home" replace />} />
 
       </Routes>
     </Router>

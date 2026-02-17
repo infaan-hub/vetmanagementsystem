@@ -79,11 +79,7 @@ export default function DoctorDashboard() {
   const email = localStorage.getItem("email") || "Not available";
 
   function handleLogout() {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("username");
-    localStorage.removeItem("email");
-    window.location.href = "/login";
+    window.location.replace("/logout?role=doctor");
   }
 
   return (
