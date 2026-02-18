@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <div className="home-root">
       <header className="home-topbar">
-        <h1>Veterinary Management System</h1>
+        <h1></h1>
         <button
           type="button"
           className="home-menu-btn"
