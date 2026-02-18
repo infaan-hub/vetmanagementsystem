@@ -226,7 +226,7 @@ function App() {
 function MobileSidebarControl() {
   const location = useLocation();
   const path = location.pathname;
-  const hideOnPaths = ["/home", "/login", "/register", "/doctor/login", "/doctor/register", "/logout"];
+  const hideOnPaths = ["/", "/home", "/home/", "/login", "/register", "/doctor/login", "/doctor/register", "/logout"];
   const shouldHide = hideOnPaths.includes(path);
 
   useEffect(() => {

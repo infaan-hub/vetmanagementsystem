@@ -205,6 +205,44 @@ export default function Patients() {
         boxSizing: "border-box",
       }}
     >
+      <style>{`
+        .patients-wrap {
+          max-width: 1100px;
+          margin: 0 auto;
+          padding: 0;
+        }
+
+        .patients-form {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
+        .patients-full {
+          grid-column: 1 / -1;
+        }
+
+        .patients-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 18px;
+        }
+
+        @media (max-width: 768px) {
+          .patients-wrap {
+            padding: 0 8px;
+          }
+
+          .patients-form {
+            grid-template-columns: 1fr;
+          }
+
+          .patients-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+
       {/* Sidebar */}
       <aside
         className="sidebar"
@@ -234,7 +272,7 @@ export default function Patients() {
 
       {/* Main */}
       <main className="main" style={{ flex: 1 }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: 0 }}>
+        <div className="patients-wrap">
           <div
             style={{
               background: "rgba(255,255,255,0.72)",
@@ -270,7 +308,7 @@ export default function Patients() {
 
             <form
               onSubmit={handleSubmit}
-              style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+              className="patients-form"
             >
               {[
                 { label: "Patient Name", name: "name", required: true },
@@ -304,7 +342,7 @@ export default function Patients() {
                 </div>
               ))}
 
-              <div style={{ gridColumn: "1 / -1" }}>
+              <div className="patients-full">
                 <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>Client *</label>
                 <select
                   name="client"
@@ -334,7 +372,7 @@ export default function Patients() {
                 <input ref={photoRef} type="file" name="photo" accept="image/*" onChange={handleChange} style={{ padding: 6 }} />
               </div>
 
-              <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
+              <div className="patients-full" style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
                 <button
                   type="submit"
                   disabled={loading}
@@ -355,7 +393,7 @@ export default function Patients() {
             </form>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "18px" }}>
+          <div className="patients-grid">
             {patients.length === 0 && <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#444" }}>No patients yet.</p>}
 
             {patients.map((p) => {

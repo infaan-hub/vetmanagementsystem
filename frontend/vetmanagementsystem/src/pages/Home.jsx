@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
 export default function Home() {
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const features = [
     "Pet Management",
     "Appointment Booking",
@@ -16,7 +17,15 @@ export default function Home() {
     <div className="home-root">
       <header className="home-topbar">
         <h1>Veterinary Management System</h1>
-        <div className="home-actions">
+        <button
+          type="button"
+          className="home-menu-btn"
+          aria-label="Toggle home menu"
+          onClick={() => setMobileNavOpen((v) => !v)}
+        >
+          {"\u2630"}
+        </button>
+        <div className={`home-actions ${mobileNavOpen ? "open" : ""}`}>
           <Link to="/register" className="home-btn">Customer Register</Link>
           <Link to="/doctor/register" className="home-btn">Doctor Register</Link>
           <Link to="/login" className="home-btn">Customer Login</Link>
@@ -26,7 +35,7 @@ export default function Home() {
 
       <main className="home-main">
         <section className="home-panel hero">
-          <h2>Welcome to Veterinary Management System</h2>
+          <h2>Welcome to Veterinary Management System🐾</h2>
           <p>
             Manage pets, appointments, treatments, and medical records in one
             secure and easy platform for doctors and customers.
@@ -55,9 +64,9 @@ export default function Home() {
           </div>
           <div>
             <h3>Contact & Location</h3>
-            <p>Email: support@vms.com</p>
-            <p>Phone: +1 (555) 123-7890</p>
-            <p>123 Vet Care Street, New York, NY</p>
+            <p>Email: infaanhameed.com</p>
+            <p>Phone: +255 711 252 758</p>
+            <p>Morrocco Street, Fuoni, Zanzibar</p>
           </div>
         </section>
 
@@ -114,6 +123,18 @@ export default function Home() {
           display: flex;
           flex-wrap: wrap;
           gap: 8px;
+        }
+        .home-menu-btn {
+          display: none;
+          border-radius: 10px;
+          border: 1px solid rgba(0, 0, 0, 0.2);
+          width: 40px;
+          height: 40px;
+          background: rgba(0, 0, 0, 0.9);
+          color: #fff;
+          font-size: 22px;
+          line-height: 1;
+          cursor: pointer;
         }
         .home-main {
           width: min(1080px, 100%);
@@ -203,8 +224,16 @@ export default function Home() {
             width: 100%;
             font-size: 19px;
           }
+          .home-menu-btn {
+            display: grid;
+            place-items: center;
+          }
           .home-actions {
             width: 100%;
+            display: none;
+          }
+          .home-actions.open {
+            display: flex;
           }
           .home-btn {
             flex: 1 1 calc(50% - 8px);
