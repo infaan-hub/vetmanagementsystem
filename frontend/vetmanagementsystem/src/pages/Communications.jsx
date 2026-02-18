@@ -138,7 +138,7 @@ export default function Communications() {
       `}</style>
 
       <div className="hero">
-        <h1>Communication</h1>
+        <h1>Communication🐾</h1>
         <p>Send messages to clients/patients and review past communications.</p>
       </div>
 

@@ -189,6 +189,7 @@ export default function Patients() {
 
   return (
     <div
+      className="layout"
       style={{
         minHeight: "100vh",
         fontFamily: '"Segoe UI",Tahoma,Geneva,Verdana,sans-serif',
@@ -206,6 +207,7 @@ export default function Patients() {
     >
       {/* Sidebar */}
       <aside
+        className="sidebar"
         style={{
           width: "260px",
           background: "rgba(255,255,255,0.72)",
@@ -218,7 +220,7 @@ export default function Patients() {
         }}
       >
         <h2 style={{ margin: 0, marginBottom: "18px", fontSize: 20 }}>VMS 🩺🐾</h2>
-        <nav style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <nav className="nav" style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           {sidebarLinks.map((l) => {
             const isActive = location.pathname === l.to;
             return (
@@ -231,7 +233,7 @@ export default function Patients() {
       </aside>
 
       {/* Main */}
-      <main style={{ flex: 1 }}>
+      <main className="main" style={{ flex: 1 }}>
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: 0 }}>
           <div
             style={{

@@ -188,10 +188,9 @@ export default function Receipts() {
   `}</style>
 
       <aside className="sidebar">
-        <h2>Veterinary Management System(VMS)🩺🐾</h2>
+        <h2>Veterinary Management System🐾</h2>
         <nav className="nav">
           <a href="/home/">Dashboard</a>
-          <a href="/patients/">Patients</a>
           <a href="/appointments/">Appointments</a>
           <a className="active" href="/receipts/">
             Receipts
@@ -203,7 +202,7 @@ export default function Receipts() {
       <main className="main">
         <div className="wrap">
           <div className="hero">
-            <h1>Receipts</h1>
+            <h1>Receipts🐾</h1>
             <p>Amount, Date (MM/DD/YYYY), Status, Client</p>
           </div>
 

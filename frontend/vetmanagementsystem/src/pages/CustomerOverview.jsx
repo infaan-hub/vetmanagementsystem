@@ -109,7 +109,7 @@ body{
       `}</style>
 
       <aside className="sidebar">
-        <h2>🩺 VMS Customer</h2>
+        <h2>Veterinary Management System panel🐾</h2>
         <nav className="nav">
           <a href="/customer-dashboard">Dashboard</a>
           <a className="active" href="/overview">
@@ -122,7 +122,7 @@ body{
 
       <main className="main">
         <div className="topbar">
-          <h1>Veterinary Management System Doctor🐾 Overview 🩺</h1>
+          <h1>Veterinary Management System Customer Overview🐾</h1>
           <div className="profile">
             <button className="profile-btn" id="profileBtn" onClick={() => setMenuOpen((v) => !v)}>
               {username}

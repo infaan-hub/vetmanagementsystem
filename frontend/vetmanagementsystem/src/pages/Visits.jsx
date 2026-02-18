@@ -337,14 +337,13 @@ textarea{min-height:80px;padding:10px;border-radius:12px}
 @media(max-width:960px){.form-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.form-grid{grid-template-columns:1fr}.container{padding:20px}}
 @media(max-width:600px){
-  .layout{flex-direction:row; overflow-x:auto;} /* keep row layout, allow scroll */
-  .sidebar{width:200px;}
+  .container{padding:10px}
 }
       `}</style>
 
       {/* Sidebar */}
       <aside className="sidebar">
-        <h2>🩺 VMS Doctor</h2>
+        <h2>VMS Doctor Panel🩺</h2>
         <nav className="nav">
           <a href="/doctor">Dashboard</a>
           <a className="active" href="/visits/">Visits</a>
@@ -361,7 +360,7 @@ textarea{min-height:80px;padding:10px;border-radius:12px}
       <main className="main">
         <div className="container">
           <div className="hero">
-            <h1>Visits</h1>
+            <h1>Visits🩺</h1>
             <p>Create and browse visit records. Assign patients, optionally a veterinarian, set visit date and status.</p>
           </div>
 

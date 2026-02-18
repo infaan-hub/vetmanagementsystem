@@ -238,7 +238,6 @@ textarea{resize:none}
         <h2>Veterinary Management System(VMS)🩺🐾</h2>
         <nav className="nav">
           <a href="/home/">Dashboard</a>
-          <a href="/patients/">Patients</a>
           <a className="active" href="/appointments/">
             Appointments
           </a>
@@ -249,8 +248,8 @@ textarea{resize:none}
       <main className="main">
         <div className="wrap">
           <div className="hero">
-            <h1>Appointments</h1>
-            <p>Schedule client appointments</p>
+            <h1>Appointments🐾</h1>
+            <p>Schedule client appointments to doctor</p>
           </div>
 
           <div className="form-card">

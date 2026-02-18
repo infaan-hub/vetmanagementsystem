@@ -86,7 +86,7 @@ export default function CustomerLogin() {
         }}
       >
         <h1 style={{ margin: "0 0 16px", fontSize: "28px" }}>
-          VMS🐾Customer Login
+          Veterinary Management System Customer Login🐾
         </h1>
         <p style={{ margin: "0 0 24px", color: "#222" }}>
           Enter your credentials to access your client portal

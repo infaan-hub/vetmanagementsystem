@@ -150,7 +150,7 @@ export default function Allergies() {
 
       <div className="layout">
         <aside className="sidebar">
-          <h2 style={{ textAlign: "center" }}>🩺 VMS Doctor</h2>
+          <h2 style={{ textAlign: "center" }}>VMS Doctor Panel🩺🐾</h2>
           <nav className="nav" style={{ marginTop: 12 }}>
             <a href="/doctor">Dashboard</a>
             <a className="active" href="/allergies/">Allergies</a>
@@ -166,7 +166,7 @@ export default function Allergies() {
         <main className="main">
           <div className="container">
             <div className="hero" style={{ padding: 26, textAlign: "center", marginBottom: 26 }}>
-              <h1>Allergies</h1>
+              <h1>Allergies🐾</h1>
               <p>Record and manage patient allergy alerts.</p>
             </div>
 

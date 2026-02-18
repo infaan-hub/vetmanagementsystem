@@ -243,7 +243,7 @@ textarea{resize:vertical;min-height:100px;}
 
       <div className="layout">
         <aside className="sidebar">
-          <h2>🩺 VMS Doctor</h2>
+          <h2>VMS Doctor🩺</h2>
           <nav className="nav">
             <a href="/doctor">Dashboard</a>
             <a href="/visits/">Visits</a>
@@ -259,7 +259,7 @@ textarea{resize:vertical;min-height:100px;}
         <main className="main">
           <div className="container">
             <div className="hero">
-              <h1>Treatments</h1>
+              <h1>Treatments🩺</h1>
               <p>Clinical treatments & procedures</p>
             </div>
 

@@ -347,15 +347,14 @@ textarea{min-height:80px;padding:10px;border-radius:12px}
 @media(max-width:960px){.form-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.form-grid{grid-template-columns:1fr}.container{padding:20px}}
 @media(max-width:600px){
-  .layout{flex-direction:row; overflow-x:auto;} /* keep row layout, allow scroll */
-  .sidebar{width:200px;}
+  .container{padding:10px}
 }
       `}</style>
 
       <div className="layout">
         {/* Sidebar */}
         <aside className="sidebar" aria-hidden={false}>
-          <h2>🩺 VMS Doctor</h2>
+          <h2>VMS Doctor Panel🩺</h2>
           <nav className="nav" aria-label="doctor navigation">
             <a href="/doctor">Dashboard</a>
             <a href="/visits/">Visits</a>
@@ -374,7 +373,7 @@ textarea{min-height:80px;padding:10px;border-radius:12px}
         <main className="main">
           <div className="container">
             <div className="hero">
-              <h1>Medical Notes</h1>
+              <h1>Medical Notes🩺</h1>
               <p>Create clinical notes, prescriptions, observations and browse past notes.</p>
             </div>
 

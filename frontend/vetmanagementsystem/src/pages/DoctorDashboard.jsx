@@ -316,7 +316,7 @@ body{
 
       <main className="main">
         <div className="topbar">
-          <h1>Veterinary Management System 🐾</h1>
+          <h1>Veterinary Management System Doctor Dashboard🩺🐾</h1>
 
           <div className="profile">
             <button className="profile-btn" id="profileBtn" onClick={() => setMenuOpen((v) => !v)}>

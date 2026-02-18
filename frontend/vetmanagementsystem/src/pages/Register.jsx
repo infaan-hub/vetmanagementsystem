@@ -77,7 +77,7 @@ export default function CustomerRegister() {
         }}
       >
         <h1 style={{ margin: "0 0 16px", fontSize: "28px" }}>
-          Customer Registration
+          Customer Registration🐾
         </h1>
         <p style={{ margin: "0 0 24px", color: "#222" }}>
           Create a new account to access your client dashboard

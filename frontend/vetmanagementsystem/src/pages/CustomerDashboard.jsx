@@ -367,7 +367,7 @@ body{
       `}</style>
 
       <aside className="sidebar">
-        <h2>VMS panel🐾</h2>
+        <h2>VMS Customer panel🐾</h2>
         <nav className="nav">
           <a className="active" href="/customer-dashboard">
             Dashboard
@@ -380,7 +380,7 @@ body{
 
       <main className="main">
         <div className="topbar">
-          <h1>Client Dashboard — VMS</h1>
+          <h1>Veterinary Management System Dashboard🐾</h1>
           <div className="profile">
             <div
               className="profile-btn"

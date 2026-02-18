@@ -1,5 +1,5 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { getRole } from "./utils/auth";
 
 import Home from "./pages/Home";
@@ -59,6 +59,7 @@ function PrivateRoute({ children, allowedRoles }) {
 function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <MobileSidebarControl />
       <Routes>
 
         {/* Default */}
@@ -219,6 +220,42 @@ function App() {
 
       </Routes>
     </Router>
+  );
+}
+
+function MobileSidebarControl() {
+  const location = useLocation();
+  const path = location.pathname;
+  const hideOnPaths = ["/home", "/login", "/register", "/doctor/login", "/doctor/register", "/logout"];
+  const shouldHide = hideOnPaths.includes(path);
+
+  useEffect(() => {
+    document.body.classList.remove("mobile-sidebar-open");
+  }, [path]);
+
+  useEffect(() => {
+    const handleClick = (event) => {
+      const link = event.target.closest(".sidebar a");
+      if (link) {
+        document.body.classList.remove("mobile-sidebar-open");
+      }
+    };
+
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, []);
+
+  if (shouldHide) return null;
+
+  return (
+    <button
+      type="button"
+      className="mobile-menu-toggle"
+      aria-label="Toggle sidebar menu"
+      onClick={() => document.body.classList.toggle("mobile-sidebar-open")}
+    >
+      ☰
+    </button>
   );
 }
 

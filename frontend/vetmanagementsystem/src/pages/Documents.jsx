@@ -219,7 +219,7 @@ textarea{resize:vertical;min-height:100px;}
       `}</style>
 
       <aside className="sidebar">
-        <h2>🩺 VMS Doctor</h2>
+        <h2>🩺 VMS Doctor Panel</h2>
         <nav className="nav">
           <a href="/doctor">Dashboard</a>
           <a href="/visits/">Visits</a>
@@ -237,7 +237,7 @@ textarea{resize:vertical;min-height:100px;}
       <main className="main">
         <div className="container">
           <div className="hero">
-            <h1>Documents</h1>
+            <h1>Documents🩺🐾</h1>
             <p>Patient medical files & attachments</p>
           </div>
 

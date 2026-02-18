@@ -138,7 +138,7 @@ export default function Vitals() {
   }
 
   return (
-    <div className="layout">
+    <div>
   <style>{`
 :root{
   --card-bg: rgba(255,255,255,0.72);
@@ -286,15 +286,14 @@ textarea{min-height:80px;padding:10px;border-radius:12px}
 @media(max-width:960px){.form-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.form-grid{grid-template-columns:1fr}.container{padding:20px}}
 @media(max-width:600px){
-  .layout{flex-direction:row; overflow-x:auto;} /* keep row layout, allow scroll */
-  .sidebar{width:200px;}
+  .container{padding:10px}
 }
       `}</style>
 
 
       <div className="layout">
         <aside className="sidebar">
-          <h2>🩺 VMS Doctor</h2>
+          <h2>VMS Doctor🩺</h2>
           <nav className="nav">
             <a href="/doctor">Dashboard</a>
             <a href="/visits/">Visits</a>
@@ -310,7 +309,7 @@ textarea{min-height:80px;padding:10px;border-radius:12px}
         <main className="main">
           <div className="container">
             <div className="hero">
-              <h1>Vitals</h1>
+              <h1>Vitals🩺</h1>
               <p>Record vitals for patients and browse existing vitals records.</p>
             </div>
 

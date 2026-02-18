@@ -75,7 +75,7 @@ export default function DoctorRegister() {
         }}
       >
         <h1 style={{ margin: "0 0 16px", fontSize: "28px" }}>
-          Doctor Registration
+          Doctor Registration🩺🐾
         </h1>
         <p style={{ margin: "0 0 24px", color: "#222" }}>
           Fill in your details to create a doctor account
