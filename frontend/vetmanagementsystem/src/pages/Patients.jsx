@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import API from "../api";
+import { BACKEND_URL } from "../api/api";
 
 export default function Patients() {
   const [patients, setPatients] = useState([]);
@@ -157,10 +158,10 @@ export default function Patients() {
     if (photo.startsWith("http://") || photo.startsWith("https://")) return photo;
 
     // relative path starting with '/'
-    if (photo.startsWith("/")) return `${window.location.origin}${photo}`;
+    if (photo.startsWith("/")) return `${BACKEND_URL}${photo}`;
 
     // fallback: assume media fileName and prefix /media/
-    return `${window.location.origin}/media/${photo}`;
+    return `${BACKEND_URL}/media/${photo}`;
   };
 
   // Sidebar requested items

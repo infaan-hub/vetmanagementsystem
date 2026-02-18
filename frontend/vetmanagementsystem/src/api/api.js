@@ -7,6 +7,7 @@ const backendUrl = (
   configuredBackend || "https://veterinarymanagementsystem-backendpart.onrender.com"
 ).replace(/\/+$/, "");
 const apiBaseUrl = `${backendUrl}/api/`;
+export const BACKEND_URL = backendUrl;
 
 let ACCESS_TOKEN = localStorage.getItem("access_token") || null;
 let REFRESH_TOKEN = localStorage.getItem("refresh_token") || null;

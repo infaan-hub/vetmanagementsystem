@@ -30,7 +30,19 @@ class ClientRegistrationSerializer(serializers.ModelSerializer):
 class PatientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
-        fields = ["id", "name", "species", "breed", "client", "patient_id"]
+        fields = [
+            "id",
+            "name",
+            "species",
+            "breed",
+            "gender",
+            "color",
+            "date_of_birth",
+            "weight_kg",
+            "photo",
+            "client",
+            "patient_id",
+        ]
 
 
 # -------------------------
