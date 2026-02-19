@@ -190,7 +190,7 @@ export default function Receipts() {
       <aside className="sidebar">
         <h2>Veterinary Management System🐾</h2>
         <nav className="nav">
-          <a href="/home/">Dashboard</a>
+          <a href="/customer-dashboard/">Dashboard</a>
           <a href="/appointments/">Appointments</a>
           <a className="active" href="/receipts/">
             Receipts

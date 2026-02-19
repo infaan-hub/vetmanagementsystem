@@ -237,7 +237,7 @@ textarea{resize:none}
       <aside className="sidebar">
         <h2>Veterinary Management System(VMS)🩺🐾</h2>
         <nav className="nav">
-          <a href="/home/">Dashboard</a>
+          <a href="/customer-dashboard/">Dashboard</a>
           <a className="active" href="/appointments/">
             Appointments
           </a>
