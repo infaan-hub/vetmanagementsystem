@@ -180,6 +180,16 @@ export default function CustomerLogin() {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
+
+        <p style={{ marginTop: "14px", textAlign: "center" }}>
+          No account?{" "}
+          <span
+            onClick={() => navigate("/register")}
+            style={{ color: "#0b5cff", cursor: "pointer", textDecoration: "underline" }}
+          >
+            Register here
+          </span>
+        </p>
       </div>
     </div>
   );

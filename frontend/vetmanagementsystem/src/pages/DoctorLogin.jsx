@@ -108,6 +108,9 @@ p.error { color: red; margin: 0 0 10px; font-weight: 600; }
           <p>
             Customer? <a href="/login">Login here</a>
           </p>
+          <p>
+            Doctor not registered? <a href="/doctor/register">Register here</a>
+          </p>
         </div>
       </div>
     </div>

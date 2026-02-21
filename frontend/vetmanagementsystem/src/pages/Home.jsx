@@ -63,8 +63,6 @@ export default function Home() {
           {"\u2630"}
         </button>
         <div className={`home-actions ${mobileNavOpen ? "open" : ""}`}>
-          <Link to="/register" className="home-btn">Customer Register</Link>
-          <Link to="/doctor/register" className="home-btn">Doctor Register</Link>
           <Link to="/login" className="home-btn">Customer Login</Link>
           <Link to="/doctor/login" className="home-btn">Doctor Login</Link>
         </div>
@@ -110,14 +108,6 @@ export default function Home() {
         </section>
 
         <section className="home-panel banner">
-          <h3>Create your account today</h3>
-          <div className="banner-actions">
-            <Link to="/register" className="home-btn black">Register Now</Link>
-            <Link to="/doctor/register" className="home-btn black">Doctor Register</Link>
-          </div>
-        </section>
-
-        <section className="home-panel banner">
           <h3>Already have an account?</h3>
           <div className="banner-actions">
             <Link to="/login" className="home-btn black">Customer Login</Link>
@@ -127,12 +117,6 @@ export default function Home() {
       </main>
 
       <footer className="home-footer">
-        <div className="footer-links">
-          <Link to="/home">Home</Link>
-          <Link to="/login">Login</Link>
-          <Link to="/register">Register</Link>
-          <Link to="/doctor/login">Doctor Login</Link>
-        </div>
         <p>(c) 2026 Veterinary Management System</p>
       </footer>
 
