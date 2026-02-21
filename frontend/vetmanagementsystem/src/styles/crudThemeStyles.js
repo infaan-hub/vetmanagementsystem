@@ -13,6 +13,42 @@ export const crudThemeStyles = `
   max-width:1100px;
   margin:0 auto;
 }
+.crud-shell{
+  display:flex;
+  gap:20px;
+}
+.crud-sidebar{
+  width:260px;
+  flex-shrink:0;
+  background:rgba(255,255,255,.72);
+  backdrop-filter:blur(14px);
+  border-radius:18px;
+  padding:18px 14px;
+  box-shadow:0 18px 40px rgba(0,0,0,.18);
+  height:fit-content;
+}
+.crud-sidebar h2{
+  margin:0 0 12px;
+  text-align:center;
+  font-size:20px;
+}
+.crud-nav a{
+  display:block;
+  text-decoration:none;
+  color:#111;
+  font-weight:700;
+  padding:10px 12px;
+  border-radius:12px;
+  margin-bottom:8px;
+}
+.crud-nav a:hover,.crud-nav a.active{
+  background:rgba(0,0,0,.88);
+  color:#fff;
+}
+.crud-main{
+  flex:1;
+  min-width:0;
+}
 .crud-content h1{
   margin:0 0 18px;
   text-align:center;
@@ -78,5 +114,19 @@ export const crudThemeStyles = `
 .action-btn:hover{
   background:#000 !important;
   color:#fff !important;
+}
+@media (max-width: 900px){
+  .crud-shell{
+    flex-direction:column;
+    gap:12px;
+  }
+  .crud-sidebar{
+    width:100%;
+  }
+}
+@media (max-width: 430px){
+  .crud-page{
+    padding:10px;
+  }
 }
 `;

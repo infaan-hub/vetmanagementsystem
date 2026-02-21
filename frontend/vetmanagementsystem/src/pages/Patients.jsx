@@ -31,6 +31,7 @@ export default function Patients() {
   function toList(data) {
     if (Array.isArray(data)) return data;
     if (Array.isArray(data?.results)) return data.results;
+    if (Array.isArray(data?.data)) return data.data;
     return [];
   }
 
@@ -45,12 +46,37 @@ export default function Patients() {
   }
 
   async function loadClients() {
-    try {
-      const res = await API.get("/clients/");
-      setClients(toList(res.data));
-    } catch (err) {
-      console.error(err);
+    const endpoints = ["/clients/", "/client/", "/users/"];
+    for (const endpoint of endpoints) {
+      try {
+        const res = await API.get(endpoint);
+        let list = toList(res.data);
+
+        // If endpoint is /users/, keep likely customer records.
+        if (endpoint === "/users/") {
+          list = list.filter((u) => {
+            const role = String(u?.role || "").toLowerCase();
+            return role === "customer" || role === "client" || u?.is_staff === false;
+          });
+        }
+
+        if (list.length) {
+          setClients(list);
+          setForm((s) => ({
+            ...s,
+            client:
+              s.client ||
+              String(list[0]?.id ?? list[0]?.client_id ?? ""),
+          }));
+          return;
+        }
+      } catch (_err) {
+        // try next endpoint
+      }
     }
+
+    setClients([]);
+    setStatus("Could not load clients list");
   }
 
   function getPhotoUrl(photo) {
@@ -214,6 +240,22 @@ export default function Patients() {
   return (
     <div className="crud-page">
       <style>{crudThemeStyles}</style>
+      <div className="crud-shell">
+      <aside className="crud-sidebar">
+        <h2>VMS Doctor Panel</h2>
+        <nav className="crud-nav">
+          <a href="/doctor-dashboard">Dashboard</a>
+          <a className="active" href="/patients">Patients</a>
+          <a href="/visits">Visits</a>
+          <a href="/allergies">Allergies</a>
+          <a href="/vitals">Vitals</a>
+          <a href="/medical-notes">Medical Notes</a>
+          <a href="/medications">Medications</a>
+          <a href="/documents">Documents</a>
+          <a href="/treatments">Treatments</a>
+        </nav>
+      </aside>
+      <main className="crud-main">
       <div className="crud-content">
       <h1>Patients</h1>
       <form onSubmit={handleSubmit}>
@@ -255,6 +297,8 @@ export default function Patients() {
           <button type="button" className="action-btn" onClick={() => handleDelete(p.id)}>Delete</button>
         </div>
       ))}
+      </div>
+      </main>
       </div>
     </div>
   );

@@ -139,6 +139,22 @@ export default function Medications() {
   return (
     <div className="crud-page">
       <style>{crudThemeStyles}</style>
+      <div className="crud-shell">
+      <aside className="crud-sidebar">
+        <h2>VMS Doctor Panel</h2>
+        <nav className="crud-nav">
+          <a href="/doctor-dashboard">Dashboard</a>
+          <a href="/patients">Patients</a>
+          <a href="/visits">Visits</a>
+          <a href="/allergies">Allergies</a>
+          <a href="/vitals">Vitals</a>
+          <a href="/medical-notes">Medical Notes</a>
+          <a className="active" href="/medications">Medications</a>
+          <a href="/documents">Documents</a>
+          <a href="/treatments">Treatments</a>
+        </nav>
+      </aside>
+      <main className="crud-main">
       <div className="crud-content">
       <h1>Medications</h1>
       <form onSubmit={handleSubmit}>
@@ -167,6 +183,8 @@ export default function Medications() {
           <button type="button" className="action-btn" onClick={() => handleDelete(m.id)}>Delete</button>
         </div>
       ))}
+      </div>
+      </main>
       </div>
     </div>
   );
