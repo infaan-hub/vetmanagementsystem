@@ -139,7 +139,7 @@ export default function Patients() {
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   })();
 
-  // Build safe photo url (handles absolute urls, relative /media/... or object form)
+  // Build safe photo URL from different backend formats.
   const getPhotoUrl = (photo) => {
     if (!photo) return svgPlaceholder;
 
@@ -154,14 +154,26 @@ export default function Patients() {
 
     if (typeof photo !== "string") return svgPlaceholder;
 
+    const normalized = photo.trim();
+    if (!normalized) return svgPlaceholder;
+
+    // In-memory and inline sources.
+    if (normalized.startsWith("blob:") || normalized.startsWith("data:")) return normalized;
+
     // absolute
-    if (photo.startsWith("http://") || photo.startsWith("https://")) return photo;
+    if (normalized.startsWith("http://") || normalized.startsWith("https://")) return normalized;
+
+    // /media/file.jpg
+    if (normalized.startsWith("/media/")) return `${BACKEND_URL}${normalized}`;
+
+    // media/file.jpg
+    if (normalized.startsWith("media/")) return `${BACKEND_URL}/${normalized}`;
 
     // relative path starting with '/'
-    if (photo.startsWith("/")) return `${BACKEND_URL}${photo}`;
+    if (normalized.startsWith("/")) return `${BACKEND_URL}${normalized}`;
 
     // fallback: assume media fileName and prefix /media/
-    return `${BACKEND_URL}/media/${photo}`;
+    return `${BACKEND_URL}/media/${normalized}`;
   };
 
   // Sidebar requested items

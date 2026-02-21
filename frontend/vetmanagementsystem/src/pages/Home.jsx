@@ -4,13 +4,48 @@ import { Link } from "react-router-dom";
 export default function Home() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const features = [
-    "Pet Management",
-    "Appointment Booking",
-    "Treatment Records",
-    "Doctor Dashboard",
-    "Client Dashboard",
-    "Medical Records",
-    "Treatment Management",
+    {
+      title: "Pet Management",
+      description: "Store pet profiles, breed details, and owner links in one place.",
+      image:
+        "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      title: "Appointment Booking",
+      description: "Track upcoming visits and simplify schedule management.",
+      image:
+        "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      title: "Treatment Records",
+      description: "Keep diagnosis, treatment plans, and progress history organized.",
+      image:
+        "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      title: "Doctor Dashboard",
+      description: "Give doctors a fast view of tasks, visits, and patient updates.",
+      image:
+        "https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      title: "Client Dashboard",
+      description: "Help pet owners see records, reminders, and appointment status.",
+      image:
+        "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      title: "Medical Records",
+      description: "Securely access complete health history whenever needed.",
+      image:
+        "https://images.unsplash.com/photo-1551884831-bbf3cdc6469e?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      title: "Treatment Management",
+      description: "Monitor medications, procedures, and care outcomes in real time.",
+      image:
+        "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&w=900&q=80",
+    },
   ];
 
   return (
@@ -46,8 +81,10 @@ export default function Home() {
           <h3>Features</h3>
           <div className="feature-grid">
             {features.map((item) => (
-              <article key={item} className="feature-card">
-                <h4>{item}</h4>
+              <article key={item.title} className="feature-card">
+                <img src={item.image} alt={item.title} className="feature-card-image" loading="lazy" />
+                <h4>{item.title}</h4>
+                <p>{item.description}</p>
               </article>
             ))}
           </div>
@@ -162,13 +199,24 @@ export default function Home() {
           border: 1px solid rgba(0, 0, 0, 0.1);
           background: rgba(255, 255, 255, 0.88);
           padding: 12px;
+          overflow: hidden;
           transition: transform .16s ease, box-shadow .16s ease;
+        }
+        .feature-card-image {
+          width: 100%;
+          height: 160px;
+          object-fit: cover;
+          border-radius: 10px;
+          display: block;
+          margin-bottom: 10px;
+          background: #eaeaea;
         }
         .feature-card:hover {
           transform: translateY(-3px);
           box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
         }
-        .feature-card h4 { margin: 0; }
+        .feature-card h4 { margin: 0 0 6px; }
+        .feature-card p { margin: 0; color: #333; line-height: 1.45; font-size: 14px; }
         .split {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
