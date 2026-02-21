@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import API from "../api";
+import { crudThemeStyles } from "../styles/crudThemeStyles";
 
 export default function Appointments() {
   const [clients, setClients] = useState([]);
@@ -121,7 +122,9 @@ export default function Appointments() {
   }
 
   return (
-    <div style={{ padding: 20 }}>
+    <div className="crud-page">
+      <style>{crudThemeStyles}</style>
+      <div className="crud-content">
       <h1>Appointments</h1>
       <form onSubmit={handleSubmit}>
         <select name="client" value={form.client} onChange={handleChange} required>
@@ -147,7 +150,13 @@ export default function Appointments() {
           <button type="button" onClick={() => handleDelete(a.id)}>Delete</button>
         </div>
       ))}
+      </div>
     </div>
   );
 }
+
+
+
+
+
 

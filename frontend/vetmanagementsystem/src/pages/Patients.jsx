@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+﻿import React, { useEffect, useRef, useState } from "react";
 import API from "../api";
+import { crudThemeStyles } from "../styles/crudThemeStyles";
 import { BACKEND_URL } from "../api/api";
 
 export default function Patients() {
@@ -153,7 +154,9 @@ export default function Patients() {
   }
 
   return (
-    <div style={{ padding: 20 }}>
+    <div className="crud-page">
+      <style>{crudThemeStyles}</style>
+      <div className="crud-content">
       <h1>Patients</h1>
       <form onSubmit={handleSubmit}>
         <input name="name" value={form.name} onChange={handleChange} placeholder="Name" required />
@@ -194,6 +197,12 @@ export default function Patients() {
           <button type="button" onClick={() => handleDelete(p.id)}>Delete</button>
         </div>
       ))}
+      </div>
     </div>
   );
 }
+
+
+
+
+

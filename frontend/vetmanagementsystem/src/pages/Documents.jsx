@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+﻿import React, { useEffect, useRef, useState } from "react";
 import API from "../api";
+import { crudThemeStyles } from "../styles/crudThemeStyles";
 import { generatePatientReportPdf, loadPatientReportData } from "../utils/patientReportPdf";
 
 export default function Documents() {
@@ -154,7 +155,9 @@ export default function Documents() {
   }
 
   return (
-    <div style={{ padding: 20 }}>
+    <div className="crud-page">
+      <style>{crudThemeStyles}</style>
+      <div className="crud-content">
       <h1>Documents</h1>
       <div style={{ border: "1px solid #ddd", padding: 10, marginBottom: 14 }}>
         <h3>Generate Full Patient PDF Report</h3>
@@ -202,6 +205,12 @@ export default function Documents() {
           </div>
         </div>
       ))}
+      </div>
     </div>
   );
 }
+
+
+
+
+

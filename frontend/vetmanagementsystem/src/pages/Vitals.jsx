@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import API from "../api";
+import { crudThemeStyles } from "../styles/crudThemeStyles";
 
 export default function Vitals() {
   const [patients, setPatients] = useState([]);
@@ -145,7 +146,9 @@ export default function Vitals() {
   }
 
   return (
-    <div style={{ padding: 20 }}>
+    <div className="crud-page">
+      <style>{crudThemeStyles}</style>
+      <div className="crud-content">
       <h1>Vitals</h1>
       <form onSubmit={handleSubmit}>
         <select name="patient" value={form.patient} onChange={handleChange} required>
@@ -175,7 +178,13 @@ export default function Vitals() {
           <button type="button" onClick={() => handleDelete(v.id)}>Delete</button>
         </div>
       ))}
+      </div>
     </div>
   );
 }
+
+
+
+
+
 

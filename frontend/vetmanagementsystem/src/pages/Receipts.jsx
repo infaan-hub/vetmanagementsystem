@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import API from "../api";
+import { crudThemeStyles } from "../styles/crudThemeStyles";
 
 export default function Receipts() {
   const [receipts, setReceipts] = useState([]);
@@ -107,7 +108,9 @@ export default function Receipts() {
   }
 
   return (
-    <div style={{ padding: 20 }}>
+    <div className="crud-page">
+      <style>{crudThemeStyles}</style>
+      <div className="crud-content">
       <h1>Receipts</h1>
       <form onSubmit={handleSubmit}>
         <input type="number" step="0.01" name="amount" value={form.amount} onChange={handleChange} placeholder="Amount" required />
@@ -135,7 +138,13 @@ export default function Receipts() {
           <button type="button" onClick={() => handleDelete(r.id)}>Delete</button>
         </div>
       ))}
+      </div>
     </div>
   );
 }
+
+
+
+
+
 
