@@ -3,48 +3,50 @@ import { Link } from "react-router-dom";
 
 export default function Home() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const pinImages = [
+    "https://pin.it/4VIhZTBvx",
+    "https://pin.it/6mcrpAAqJ",
+    "https://pin.it/7lk93tE33",
+    "https://pin.it/2ldTQ9OEN",
+    "https://pin.it/4RLhbUZAR",
+    "https://pin.it/JiEBNchKS",
+  ];
+
   const features = [
     {
       title: "Pet Management",
       description: "Store pet profiles, breed details, and owner links in one place.",
-      image:
-        "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80",
+      image: pinImages[0],
     },
     {
       title: "Appointment Booking",
       description: "Track upcoming visits and simplify schedule management.",
-      image:
-        "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?auto=format&fit=crop&w=900&q=80",
+      image: pinImages[1],
     },
     {
       title: "Treatment Records",
       description: "Keep diagnosis, treatment plans, and progress history organized.",
-      image:
-        "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=900&q=80",
+      image: pinImages[2],
     },
     {
       title: "Doctor Dashboard",
       description: "Give doctors a fast view of tasks, visits, and patient updates.",
-      image:
-        "https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?auto=format&fit=crop&w=900&q=80",
+      image: pinImages[3],
     },
     {
       title: "Client Dashboard",
       description: "Help pet owners see records, reminders, and appointment status.",
-      image:
-        "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?auto=format&fit=crop&w=900&q=80",
+      image: pinImages[4],
     },
     {
       title: "Medical Records",
       description: "Securely access complete health history whenever needed.",
-      image:
-        "https://images.unsplash.com/photo-1551884831-bbf3cdc6469e?auto=format&fit=crop&w=900&q=80",
+      image: pinImages[5],
     },
     {
       title: "Treatment Management",
       description: "Monitor medications, procedures, and care outcomes in real time.",
-      image:
-        "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&w=900&q=80",
+      image: pinImages[0],
     },
   ];
 
