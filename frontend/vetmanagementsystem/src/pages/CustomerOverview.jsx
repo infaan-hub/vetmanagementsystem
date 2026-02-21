@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import API from "../api";
+import { generatePatientReportPdf, loadPatientReportData } from "../utils/patientReportPdf";
 
 export default function CustomerOverview() {
   const [data, setData] = useState({
@@ -13,6 +14,9 @@ export default function CustomerOverview() {
   });
   const [activeTab, setActiveTab] = useState("allergies");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [patients, setPatients] = useState([]);
+  const [selectedPatientId, setSelectedPatientId] = useState("");
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -38,7 +42,20 @@ export default function CustomerOverview() {
         };
 
         const keys = Object.keys(endpoints);
-        const responses = await Promise.allSettled(keys.map((k) => API.get(endpoints[k])));
+        const [patientsRes, ...responses] = await Promise.allSettled([
+          API.get("/patients/"),
+          ...keys.map((k) => API.get(endpoints[k])),
+        ]);
+
+        if (patientsRes.status === "fulfilled") {
+          const patientList = toList(patientsRes.value.data);
+          setPatients(patientList);
+          if (patientList.length === 1) {
+            setSelectedPatientId(String(patientList[0].id ?? patientList[0].patient_id));
+          }
+        } else {
+          setPatients([]);
+        }
 
         const next = { ...data };
         keys.forEach((k, idx) => {
@@ -64,6 +81,24 @@ export default function CustomerOverview() {
 
   const username = localStorage.getItem("username") || "Customer";
   const email = localStorage.getItem("email") || "Not available";
+
+  async function handleDownloadPdf() {
+    if (!selectedPatientId) {
+      setError("Select patient first");
+      return;
+    }
+    setPdfLoading(true);
+    setError("");
+    try {
+      const { patient, client, sections } = await loadPatientReportData(API, selectedPatientId);
+      await generatePatientReportPdf({ patient, client, sections });
+    } catch (err) {
+      console.error(err);
+      setError("Failed to download PDF report");
+    } finally {
+      setPdfLoading(false);
+    }
+  }
 
   return (
     <div className="layout">
@@ -144,6 +179,20 @@ body{
         </div>
 
         <section className="content">
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
+            <select value={selectedPatientId} onChange={(e) => setSelectedPatientId(e.target.value)}>
+              <option value="">Select patient for PDF</option>
+              {patients.map((p) => (
+                <option key={p.id ?? p.patient_id} value={p.id ?? p.patient_id}>
+                  {p.name || p.patient_id || p.id}
+                </option>
+              ))}
+            </select>
+            <button type="button" className="section-tab active" onClick={handleDownloadPdf} disabled={pdfLoading}>
+              {pdfLoading ? "Generating PDF..." : "Download Full PDF"}
+            </button>
+          </div>
+
           <div className="section-tabs">
             <button className={`section-tab ${activeTab === "allergies" ? "active" : ""}`} onClick={() => setActiveTab("allergies")}>
               Allergies

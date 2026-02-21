@@ -4,12 +4,12 @@ import { Link } from "react-router-dom";
 export default function Home() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const pinImages = [
-    "https://pin.it/4VIhZTBvx",
-    "https://pin.it/6mcrpAAqJ",
-    "https://pin.it/7lk93tE33",
-    "https://pin.it/2ldTQ9OEN",
-    "https://pin.it/4RLhbUZAR",
-    "https://pin.it/JiEBNchKS",
+    "https://i.pinimg.com/736x/95/e1/58/95e158868c3ffe27a748e2d7a16ca410.jpg",
+    "https://i.pinimg.com/736x/66/f2/7a/66f27a139976bf66316ea089fc022d67.jpg",
+    "https://i.pinimg.com/736x/8d/d3/07/8dd307185c19f57313fcaf269aeccad8.jpg",
+    "https://i.pinimg.com/736x/40/ca/34/40ca348056397314c11369684248701f.jpg",
+    "https://i.pinimg.com/736x/8c/d0/24/8cd02418ea964e082f7fa32b6ea06125.jpg",
+    "https://i.pinimg.com/736x/37/13/d0/3713d02b728ca1d82a7f5fa49214aae3.jpg",
   ];
 
   const features = [

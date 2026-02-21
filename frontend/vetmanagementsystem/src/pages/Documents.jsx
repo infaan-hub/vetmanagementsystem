@@ -1,11 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import API from "../api";
+import { generatePatientReportPdf, loadPatientReportData } from "../utils/patientReportPdf";
 
 export default function Documents() {
+  const fileRef = useRef(null);
   const [patients, setPatients] = useState([]);
+  const [clients, setClients] = useState([]);
   const [documents, setDocuments] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [reportPatientId, setReportPatientId] = useState("");
+  const [generatingPdf, setGeneratingPdf] = useState(false);
   const [status, setStatus] = useState("");
-  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     patient: "",
     title: "",
@@ -15,8 +20,8 @@ export default function Documents() {
 
   useEffect(() => {
     loadPatients();
+    loadClients();
     loadDocuments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function toList(data) {
@@ -25,21 +30,21 @@ export default function Documents() {
     return [];
   }
 
-  function getCSRFToken() {
-    const cookieString = document.cookie || "";
-    for (const c of cookieString.split(";").map((s) => s.trim())) {
-      if (c.startsWith("csrftoken=")) return decodeURIComponent(c.split("=")[1]);
-    }
-    return null;
-  }
-
   async function loadPatients() {
     try {
       const res = await API.get("/patients/");
       setPatients(toList(res.data));
     } catch (err) {
-      console.error("loadPatients:", err);
-      setStatus("Error loading patients");
+      console.error(err);
+    }
+  }
+
+  async function loadClients() {
+    try {
+      const res = await API.get("/clients/");
+      setClients(toList(res.data));
+    } catch (err) {
+      console.error(err);
     }
   }
 
@@ -48,261 +53,155 @@ export default function Documents() {
       const res = await API.get("/documents/");
       setDocuments(toList(res.data));
     } catch (err) {
-      console.error("loadDocuments:", err);
-      setStatus("Error loading documents");
+      console.error(err);
+      setStatus("Could not load documents");
     }
   }
 
   function handleChange(e) {
     const { name, value, files } = e.target;
     if (name === "file") {
-      setForm((s) => ({ ...s, file: files && files.length ? files[0] : null }));
+      setForm((s) => ({ ...s, file: files?.[0] || null }));
       return;
     }
     setForm((s) => ({ ...s, [name]: value }));
   }
 
+  function clearForm() {
+    setEditingId(null);
+    setForm({ patient: "", title: "", file: null, description: "" });
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
+  function startEdit(d) {
+    setEditingId(d.id);
+    setForm({
+      patient: String(d.patient?.id ?? d.patient ?? ""),
+      title: d.title || "",
+      file: null,
+      description: d.description || "",
+    });
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
+  async function handleDelete(id) {
+    if (!window.confirm("Delete this document?")) return;
+    try {
+      await API.delete(`/documents/${id}/`);
+      if (editingId === id) clearForm();
+      setStatus("Document deleted");
+      await loadDocuments();
+    } catch (err) {
+      console.error(err);
+      setStatus("Failed to delete document");
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
-    setStatus("");
-
-    if (!form.patient || !form.title || !form.file) {
-      setStatus("Please fill all required fields");
+    if (!form.patient || !form.title) {
+      setStatus("Patient and title are required");
       return;
     }
 
-    setLoading(true);
+    const fd = new FormData();
+    fd.append("patient", form.patient);
+    fd.append("title", form.title);
+    fd.append("description", form.description || "");
+    if (form.file) fd.append("file", form.file);
+
     try {
-      const fd = new FormData();
-      fd.append("patient", form.patient);
-      fd.append("title", form.title);
-      fd.append("file", form.file);
-      fd.append("description", form.description || "");
-
-      const csrf = getCSRFToken();
-      const headers = {};
-      if (csrf) headers["X-CSRFToken"] = csrf;
-
-      await API.post("/documents/", fd, { headers });
-      setStatus("Document uploaded");
-      setForm({
-        patient: "",
-        title: "",
-        file: null,
-        description: "",
-      });
-
-      const fileInput = document.querySelector('input[name="file"]');
-      if (fileInput) fileInput.value = "";
-
+      if (editingId) {
+        await API.patch(`/documents/${editingId}/`, fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        setStatus("Document updated");
+      } else {
+        if (!form.file) {
+          setStatus("File is required for new document");
+          return;
+        }
+        await API.post("/documents/", fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        setStatus("Document added");
+      }
+      clearForm();
       await loadDocuments();
     } catch (err) {
-      console.error("upload document:", err);
-      const detail = err?.response?.data || err?.message || "Upload failed";
-      setStatus(typeof detail === "string" ? detail : JSON.stringify(detail));
+      console.error(err);
+      setStatus("Failed to save document");
+    }
+  }
+
+  async function handleGeneratePdf() {
+    if (!reportPatientId) {
+      setStatus("Select patient for report");
+      return;
+    }
+    setGeneratingPdf(true);
+    setStatus("");
+    try {
+      const { patient, client, sections } = await loadPatientReportData(API, reportPatientId);
+      await generatePatientReportPdf({ patient, client, sections });
+      setStatus("PDF report downloaded");
+    } catch (err) {
+      console.error(err);
+      setStatus("Failed to generate PDF report");
     } finally {
-      setLoading(false);
+      setGeneratingPdf(false);
     }
   }
 
   return (
-    <div className="layout">
-      <style>{`
-:root{
-  --card-bg: rgba(255,255,255,0.72);
-  --card-shadow: 0 18px 40px rgba(0,0,0,.18);
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:"Segoe UI",Tahoma,sans-serif;
-  color:#111;
-  background:url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg") center/cover no-repeat;
-}
-
-/* ===== Layout ===== */
-.layout{display:flex;gap:20px;padding:24px;height:100vh;}
-
-/* ===== Sidebar ===== */
-.sidebar{
-  width:260px;
-  background:var(--card-bg);
-  backdrop-filter:blur(14px);
-  box-shadow:var(--card-shadow);
-  border-radius:18px;
-  padding:24px 18px;
-  display:flex;
-  flex-direction:column;
-}
-.sidebar h2{text-align:center;margin:0 0 20px;font-size:22px}
-.nav a{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:12px 16px;
-  border-radius:12px;
-  margin-bottom:8px;
-  text-decoration:none;
-  font-weight:600;
-  color:#111;
-}
-.nav a.active,.nav a:hover{
-  background:rgba(0,0,0,0.85);
-  color:#fff;
-}
-
-/* ===== Main ===== */
-.main{flex:1;overflow:auto;padding-right:10px}
-
-/* ===== Container ===== */
-.container{max-width:1100px;margin:0 auto;padding:0 20px}
-
-/* ===== Hero ===== */
-.hero{
-  background:var(--card-bg);
-  backdrop-filter: blur(12px) saturate(120%);
-  box-shadow: var(--card-shadow);
-  border-radius: 18px;
-  padding: 28px 22px;
-  text-align:center;
-  margin-bottom:26px;
-}
-.hero h1{margin:0 0 8px;font-size:28px}
-.hero p{margin:0;color:#222}
-
-/* ===== Buttons ===== */
-.btn{
-  display:inline-block;
-  padding:10px 20px;
-  border-radius:999px;
-  font-weight:700;
-  border:1px solid rgba(0,0,0,0.12);
-  background: rgba(255,255,255,0.42);
-  cursor:pointer;
-}
-.btn:hover{transform:translateY(-3px);background:rgba(0,0,0,0.85);color:#fff;}
-
-/* ===== Form ===== */
-.card{
-  background:var(--card-bg);
-  backdrop-filter:blur(12px);
-  box-shadow:var(--card-shadow);
-  border-radius:18px;
-  padding:18px;
-  margin-bottom:28px;
-}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.full{grid-column:1/-1;}
-label{font-weight:600;margin-bottom:6px;display:block;}
-input,select,textarea{width:100%;padding:10px;border-radius:12px;border:1px solid rgba(0,0,0,.15);}
-textarea{resize:vertical;min-height:100px;}
-.status{margin-top:10px;font-weight:600;}
-
-/* ===== Documents Cards ===== */
-.docs{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:18px;
-}
-.doc-card{
-  background:var(--card-bg);
-  backdrop-filter:blur(12px);
-  box-shadow:var(--card-shadow);
-  border-radius:16px;
-  padding:14px;
-  transition: transform .18s ease, box-shadow .18s ease;
-}
-.doc-card:hover{transform:translateY(-6px);box-shadow:0 30px 60px rgba(0,0,0,0.25);}
-
-@media(max-width:900px){.layout{flex-direction:column}.sidebar{width:100%}}
-@media(max-width:720px){.grid{grid-template-columns:1fr}}
-      `}</style>
-
-      <aside className="sidebar">
-        <h2>🩺 VMS Doctor Panel</h2>
-        <nav className="nav">
-          <a href="/doctor">Dashboard</a>
-          <a href="/visits/">Visits</a>
-          <a href="/allergies/">Allergies</a>
-          <a href="/vitals/">Vitals</a>
-          <a href="/medical-notes/">Medical Notes</a>
-          <a href="/medications/">Medications</a>
-          <a className="active" href="/documents/">
-            Documents
-          </a>
-          <a href="/treatments/">Treatments</a>
-        </nav>
-      </aside>
-
-      <main className="main">
-        <div className="container">
-          <div className="hero">
-            <h1>Documents🩺🐾</h1>
-            <p>Patient medical files & attachments</p>
+    <div style={{ padding: 20 }}>
+      <h1>Documents</h1>
+      <div style={{ border: "1px solid #ddd", padding: 10, marginBottom: 14 }}>
+        <h3>Generate Full Patient PDF Report</h3>
+        <select value={reportPatientId} onChange={(e) => setReportPatientId(e.target.value)}>
+          <option value="">Select patient</option>
+          {patients.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name || p.patient_id || p.id}
+            </option>
+          ))}
+        </select>
+        <button type="button" onClick={handleGeneratePdf} disabled={generatingPdf}>
+          {generatingPdf ? "Generating..." : "Download Full PDF"}
+        </button>
+      </div>
+      <form onSubmit={handleSubmit}>
+        <select name="patient" value={form.patient} onChange={handleChange} required>
+          <option value="">Select patient</option>
+          {patients.map((p) => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}
+        </select>
+        <input name="title" value={form.title} onChange={handleChange} placeholder="Title" required />
+        <input ref={fileRef} type="file" name="file" onChange={handleChange} />
+        <textarea name="description" value={form.description} onChange={handleChange} placeholder="Description" />
+        <button type="submit">{editingId ? "Update Document" : "Add Document"}</button>
+        {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}
+      </form>
+      <p>{status}</p>
+      {documents.map((d) => (
+        <div key={d.id} style={{ border: "1px solid #ddd", padding: 10, marginBottom: 8 }}>
+          <strong>{d.title || "Document"}</strong>
+          <div>
+            {d.patient_name || d.patient}{" "}
+            {(() => {
+              const pid = String(d.patient?.id ?? d.patient ?? "");
+              const p = patients.find((x) => String(x.id ?? x.patient_id) === pid);
+              const cid = p?.client?.id ?? p?.client_id ?? p?.client;
+              const c = clients.find((x) => String(x.id ?? x.client_id) === String(cid));
+              return c ? `| Client: ${c.full_name || c.username || c.id}` : "";
+            })()}
           </div>
-
-          <div className="card">
-            <form id="docForm" onSubmit={handleSubmit}>
-              <div className="grid">
-                <div>
-                  <label>Patient</label>
-                  <select id="patientSelect" name="patient" value={form.patient} onChange={handleChange} required>
-                    <option value="">{patients.length ? "Select patient" : "Loading patients..."}</option>
-                    {patients.map((p) => (
-                      <option key={p.id ?? p.patient_id} value={p.id ?? p.patient_id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label>Title</label>
-                  <input name="title" value={form.title} onChange={handleChange} required />
-                </div>
-                <div className="full">
-                  <label>Document File</label>
-                  <input type="file" name="file" onChange={handleChange} required />
-                </div>
-                <div className="full">
-                  <label>Description</label>
-                  <textarea name="description" value={form.description} onChange={handleChange}></textarea>
-                </div>
-              </div>
-              <div style={{ textAlign: "right", marginTop: 12 }}>
-                <button className="btn" disabled={loading}>
-                  {loading ? "Uploading..." : "Upload Document"}
-                </button>
-              </div>
-              <p id="status" className="status">
-                {status}
-              </p>
-            </form>
-          </div>
-
-          <div className="docs" id="docGrid">
-            {documents.length === 0 && <p>No documents uploaded</p>}
-            {documents.map((d, index) => (
-              <div className="doc-card" key={d.id ?? `doc-${index}`}>
-                <strong>{d.title || d.document_type || "Document"}</strong>
-                <br />
-                Patient: {d.patient_name || d.patient || "-"}
-                <br />
-                {(d.description || "").toString()}
-                <br />
-                <br />
-                {d.file ? (
-                  <a href={d.file} target="_blank" rel="noreferrer" className="btn">
-                    View
-                  </a>
-                ) : null}
-                <div style={{ marginTop: 6, fontSize: 13, color: "#555" }}>
-                  {d.created_at ? new Date(d.created_at).toLocaleString() : ""}
-                </div>
-              </div>
-            ))}
+          {d.file ? <a href={d.file} target="_blank" rel="noreferrer">View</a> : null}
+          <div>
+            <button type="button" onClick={() => startEdit(d)}>Edit</button>
+            <button type="button" onClick={() => handleDelete(d.id)}>Delete</button>
           </div>
         </div>
-      </main>
+      ))}
     </div>
   );
 }
