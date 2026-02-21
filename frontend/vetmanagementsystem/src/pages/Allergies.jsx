@@ -180,10 +180,10 @@ export default function Allergies() {
               </div>
             </div>
             <div className="actions">
-              <button type="submit" disabled={loading}>
+              <button className="action-btn" type="submit" disabled={loading}>
                 {loading ? "Saving..." : editingId ? "Update Allergy" : "Add Allergy"}
               </button>
-              {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}
+              {editingId ? <button className="action-btn" type="button" onClick={clearForm}>Cancel</button> : null}
             </div>
             {status ? <p>{status}</p> : null}
           </form>

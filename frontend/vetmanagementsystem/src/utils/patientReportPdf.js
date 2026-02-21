@@ -82,9 +82,39 @@ function sectionLine(sectionKey, row) {
   return JSON.stringify(row);
 }
 
+function getPatientPhotoCandidate(patient) {
+  const candidates = [
+    patient?.photo_url,
+    patient?.image,
+    patient?.photo_path,
+    patient?.photo?.url,
+    patient?.photo?.path,
+    patient?.photo?.file,
+    patient?.photo?.image,
+    patient?.photo,
+  ];
+  for (const c of candidates) {
+    if (typeof c === "string" && c.trim()) return c;
+  }
+  return "";
+}
+
 function toAbsoluteImageUrl(url) {
   if (!url || typeof url !== "string") return "";
-  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) return url;
+  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+    try {
+      const u = new URL(url);
+      if (u.pathname.includes("/src/assets/")) {
+        const fileName = u.pathname.split("/").pop();
+        if (fileName) return `${BACKEND_URL}/media/${fileName}`;
+      }
+    } catch (_err) {}
+    return url;
+  }
+  if (url.includes("/src/assets/")) {
+    const fileName = url.split("/").pop();
+    if (fileName) return `${BACKEND_URL}/media/${fileName}`;
+  }
   if (url.startsWith("/")) return `${BACKEND_URL || window.location.origin}${url}`;
   return `${BACKEND_URL || window.location.origin}/${url}`;
 }
@@ -165,7 +195,7 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
   doc.text("Veterinary Management System", marginX, y);
   y += 24;
 
-  const photoUrl = patient.photo?.url || patient.photo_url || patient.photo || patient.image || patient.photo_path || "";
+  const photoUrl = getPatientPhotoCandidate(patient);
   const photoDataUrl = await imageToDataUrl(photoUrl);
   if (photoDataUrl) {
     try {

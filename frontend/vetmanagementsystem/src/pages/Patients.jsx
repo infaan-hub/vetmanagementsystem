@@ -60,7 +60,20 @@ export default function Patients() {
     }
     if (typeof photo !== "string") return "";
     const s = photo.trim().replace(/\\/g, "/");
-    if (s.startsWith("http://") || s.startsWith("https://") || s.startsWith("blob:") || s.startsWith("data:")) return s;
+    if (s.startsWith("http://") || s.startsWith("https://") || s.startsWith("blob:") || s.startsWith("data:")) {
+      try {
+        const u = new URL(s);
+        if (u.pathname.includes("/src/assets/")) {
+          const fileName = u.pathname.split("/").pop();
+          return fileName ? `${BACKEND_URL}/media/${fileName}` : s;
+        }
+      } catch (_err) {}
+      return s;
+    }
+    if (s.includes("/src/assets/")) {
+      const fileName = s.split("/").pop();
+      return fileName ? `${BACKEND_URL}/media/${fileName}` : "";
+    }
     if (s.startsWith("/api/media/")) return `${BACKEND_URL}${s.replace(/^\/api/, "")}`;
     if (s.startsWith("/media/")) return `${BACKEND_URL}${s}`;
     if (s.startsWith("media/")) return `${BACKEND_URL}/${s}`;
@@ -75,6 +88,23 @@ export default function Patients() {
     </svg>`;
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   })();
+
+  function getPhotoCandidate(patient) {
+    const candidates = [
+      patient?.photo_url,
+      patient?.image,
+      patient?.photo_path,
+      patient?.photo?.url,
+      patient?.photo?.path,
+      patient?.photo?.file,
+      patient?.photo?.image,
+      patient?.photo,
+    ];
+    for (const c of candidates) {
+      if (typeof c === "string" && c.trim()) return c;
+    }
+    return "";
+  }
 
   async function loadImageWithAuthFallback(src, patientId) {
     if (!src || src.startsWith("data:") || src.startsWith("blob:")) return;
@@ -206,7 +236,7 @@ export default function Patients() {
       {patients.map((p) => (
         <div key={p.id} className="crud-record-card">
           {(() => {
-            const rawSrc = getPhotoUrl(p.photo || p.photo_url || p.image || p.photo_path);
+            const rawSrc = getPhotoUrl(getPhotoCandidate(p));
             const src = imgFallbackMap[p.id] || rawSrc || svgPlaceholder;
             return (
           <img
