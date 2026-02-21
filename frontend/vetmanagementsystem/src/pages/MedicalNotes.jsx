@@ -135,19 +135,20 @@ export default function MedicalNotes() {
         <button type="submit">{editingId ? "Update Note" : "Add Note"}</button>
         {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}
       </form>
-      <p>{status}</p>
+      <p className="status-msg">{status}</p>
       {notes.map((n) => (
-        <div key={n.id} style={{ border: "1px solid #ddd", padding: 10, marginBottom: 8 }}>
+        <div key={n.id} className="crud-record-card">
           <strong>{n.patient_name || `Visit ${n.visit}`}</strong>
           <p>{n.note || n.body}</p>
-          <button type="button" onClick={() => startEdit(n)}>Edit</button>
-          <button type="button" onClick={() => handleDelete(n.id)}>Delete</button>
+          <button type="button" className="action-btn" onClick={() => startEdit(n)}>Edit</button>
+          <button type="button" className="action-btn" onClick={() => handleDelete(n.id)}>Delete</button>
         </div>
       ))}
       </div>
     </div>
   );
 }
+
 
 
 

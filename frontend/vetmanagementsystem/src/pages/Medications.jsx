@@ -158,19 +158,20 @@ export default function Medications() {
         <button type="submit">{editingId ? "Update Medication" : "Add Medication"}</button>
         {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}
       </form>
-      <p>{status}</p>
+      <p className="status-msg">{status}</p>
       {medications.map((m) => (
-        <div key={m.id} style={{ border: "1px solid #ddd", padding: 10, marginBottom: 8 }}>
+        <div key={m.id} className="crud-record-card">
           <strong>{m.name}</strong>
           <div>{m.patient_name || m.patient}</div>
-          <button type="button" onClick={() => startEdit(m)}>Edit</button>
-          <button type="button" onClick={() => handleDelete(m.id)}>Delete</button>
+          <button type="button" className="action-btn" onClick={() => startEdit(m)}>Edit</button>
+          <button type="button" className="action-btn" onClick={() => handleDelete(m.id)}>Delete</button>
         </div>
       ))}
       </div>
     </div>
   );
 }
+
 
 
 

@@ -52,5 +52,31 @@ export const crudThemeStyles = `
   background:rgba(0,0,0,0.85);
   color:#fff;
 }
+.crud-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:14px;
+  margin-top:10px;
+}
+.crud-record-card{
+  background:rgba(255,255,255,0.72);
+  backdrop-filter:blur(14px);
+  border-radius:16px;
+  box-shadow:0 18px 40px rgba(0,0,0,0.18);
+  padding:12px;
+  margin-bottom:8px;
+}
+.status-msg{
+  margin:8px 0 12px;
+  font-weight:600;
+}
+.action-btn{
+  background:rgba(0,0,0,0.9) !important;
+  color:#fff !important;
+  border:1px solid rgba(0,0,0,0.92) !important;
+}
+.action-btn:hover{
+  background:#000 !important;
+  color:#fff !important;
+}
 `;
-

@@ -140,20 +140,21 @@ export default function Appointments() {
         <button type="submit">{editingId ? "Update Appointment" : "Add Appointment"}</button>
         {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}
       </form>
-      <p>{status}</p>
+      <p className="status-msg">{status}</p>
       {appointments.map((a) => (
-        <div key={a.id} style={{ border: "1px solid #ddd", marginBottom: 8, padding: 10 }}>
+        <div key={a.id} className="crud-record-card">
           <strong>{a.patient_name || a.patient}</strong>
           <div>{a.date}</div>
           <div>{a.reason}</div>
-          <button type="button" onClick={() => startEdit(a)}>Edit</button>
-          <button type="button" onClick={() => handleDelete(a.id)}>Delete</button>
+          <button type="button" className="action-btn" onClick={() => startEdit(a)}>Edit</button>
+          <button type="button" className="action-btn" onClick={() => handleDelete(a.id)}>Delete</button>
         </div>
       ))}
       </div>
     </div>
   );
 }
+
 
 
 

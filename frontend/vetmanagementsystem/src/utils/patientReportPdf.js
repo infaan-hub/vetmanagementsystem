@@ -92,6 +92,24 @@ function toAbsoluteImageUrl(url) {
 async function imageToDataUrl(imageUrl) {
   const abs = toAbsoluteImageUrl(imageUrl);
   if (!abs) return "";
+  try {
+    const token = localStorage.getItem("access_token");
+    const res = await fetch(abs, {
+      credentials: "include",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (res.ok) {
+      const blob = await res.blob();
+      const dataUrl = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(String(reader.result || ""));
+        reader.onerror = () => resolve("");
+        reader.readAsDataURL(blob);
+      });
+      if (dataUrl) return dataUrl;
+    }
+  } catch (_err) {}
+
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -147,7 +165,7 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
   doc.text("Veterinary Management System", marginX, y);
   y += 24;
 
-  const photoUrl = patient.photo?.url || patient.photo_url || patient.photo || patient.image || "";
+  const photoUrl = patient.photo?.url || patient.photo_url || patient.photo || patient.image || patient.photo_path || "";
   const photoDataUrl = await imageToDataUrl(photoUrl);
   if (photoDataUrl) {
     try {

@@ -159,7 +159,7 @@ export default function Documents() {
       <style>{crudThemeStyles}</style>
       <div className="crud-content">
       <h1>Documents</h1>
-      <div style={{ border: "1px solid #ddd", padding: 10, marginBottom: 14 }}>
+      <div className="crud-record-card">
         <h3>Generate Full Patient PDF Report</h3>
         <select value={reportPatientId} onChange={(e) => setReportPatientId(e.target.value)}>
           <option value="">Select patient</option>
@@ -184,9 +184,9 @@ export default function Documents() {
         <button type="submit">{editingId ? "Update Document" : "Add Document"}</button>
         {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}
       </form>
-      <p>{status}</p>
+      <p className="status-msg">{status}</p>
       {documents.map((d) => (
-        <div key={d.id} style={{ border: "1px solid #ddd", padding: 10, marginBottom: 8 }}>
+        <div key={d.id} className="crud-record-card">
           <strong>{d.title || "Document"}</strong>
           <div>
             {d.patient_name || d.patient}{" "}
@@ -200,8 +200,8 @@ export default function Documents() {
           </div>
           {d.file ? <a href={d.file} target="_blank" rel="noreferrer">View</a> : null}
           <div>
-            <button type="button" onClick={() => startEdit(d)}>Edit</button>
-            <button type="button" onClick={() => handleDelete(d.id)}>Delete</button>
+            <button type="button" className="action-btn" onClick={() => startEdit(d)}>Edit</button>
+            <button type="button" className="action-btn" onClick={() => handleDelete(d.id)}>Delete</button>
           </div>
         </div>
       ))}
@@ -209,6 +209,7 @@ export default function Documents() {
     </div>
   );
 }
+
 
 
 

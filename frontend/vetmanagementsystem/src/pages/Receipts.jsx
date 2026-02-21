@@ -127,21 +127,22 @@ export default function Receipts() {
         <button type="submit">{editingId ? "Update Receipt" : "Add Receipt"}</button>
         {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}
       </form>
-      <p>{status}</p>
+      <p className="status-msg">{status}</p>
       {receipts.map((r) => (
-        <div key={r.id} style={{ border: "1px solid #ddd", padding: 10, marginBottom: 8 }}>
+        <div key={r.id} className="crud-record-card">
           <strong>Receipt {r.id}</strong>
           <div>{r.amount}</div>
           <div>{r.date}</div>
           <div>{r.status}</div>
-          <button type="button" onClick={() => startEdit(r)}>Edit</button>
-          <button type="button" onClick={() => handleDelete(r.id)}>Delete</button>
+          <button type="button" className="action-btn" onClick={() => startEdit(r)}>Edit</button>
+          <button type="button" className="action-btn" onClick={() => handleDelete(r.id)}>Delete</button>
         </div>
       ))}
       </div>
     </div>
   );
 }
+
 
 
 

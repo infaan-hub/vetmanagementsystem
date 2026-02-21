@@ -124,6 +124,15 @@ export default function Allergies() {
         input,select,textarea,button{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(0,0,0,.15)}
         .actions{display:flex;gap:8px;margin-top:10px}
         .items{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:16px}
+        .action-btn{
+          background:rgba(0,0,0,0.9);
+          color:#fff;
+          border:1px solid rgba(0,0,0,0.9);
+        }
+        .action-btn:hover{
+          background:#000;
+          color:#fff;
+        }
       `}</style>
       <aside className="sidebar">
         <h2>VMS Doctor</h2>
@@ -187,8 +196,8 @@ export default function Allergies() {
               <p>Severity: {a.severity_level || "N/A"}</p>
               <p>{a.description || a.notes || ""}</p>
               <div className="actions">
-                <button type="button" onClick={() => startEdit(a)}>Edit</button>
-                <button type="button" onClick={() => handleDelete(a.id)}>Delete</button>
+                <button className="action-btn" type="button" onClick={() => startEdit(a)}>Edit</button>
+                <button className="action-btn" type="button" onClick={() => handleDelete(a.id)}>Delete</button>
               </div>
             </div>
           ))}
@@ -197,4 +206,3 @@ export default function Allergies() {
     </div>
   );
 }
-

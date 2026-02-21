@@ -170,16 +170,16 @@ export default function Visits() {
         <button type="submit">{editingId ? "Update Visit" : "Add Visit"}</button>
         {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}
       </form>
-      <p>{status}</p>
+      <p className="status-msg">{status}</p>
       <div>
         {visits.map((v) => (
-          <div key={v.id} style={{ border: "1px solid #ddd", padding: 10, marginBottom: 8 }}>
+          <div key={v.id} className="crud-record-card">
             <strong>{v.patient_name || `Patient ${v.patient}`}</strong>
             <div>{v.visit_date}</div>
             <div>{v.visit_status}</div>
             <div>
-              <button type="button" onClick={() => startEdit(v)}>Edit</button>
-              <button type="button" onClick={() => handleDelete(v.id)}>Delete</button>
+              <button type="button" className="action-btn" onClick={() => startEdit(v)}>Edit</button>
+              <button type="button" className="action-btn" onClick={() => handleDelete(v.id)}>Delete</button>
             </div>
           </div>
         ))}
@@ -188,6 +188,7 @@ export default function Visits() {
     </div>
   );
 }
+
 
 
 

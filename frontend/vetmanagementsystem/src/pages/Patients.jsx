@@ -5,6 +5,7 @@ import { BACKEND_URL } from "../api/api";
 
 export default function Patients() {
   const fileRef = useRef(null);
+  const objectUrlCacheRef = useRef(new Map());
   const [patients, setPatients] = useState([]);
   const [clients, setClients] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -54,10 +55,13 @@ export default function Patients() {
 
   function getPhotoUrl(photo) {
     if (!photo) return "";
-    if (typeof photo === "object" && photo.url) photo = photo.url;
+    if (typeof photo === "object") {
+      photo = photo.url || photo.path || photo.file || "";
+    }
     if (typeof photo !== "string") return "";
-    const s = photo.trim();
+    const s = photo.trim().replace(/\\/g, "/");
     if (s.startsWith("http://") || s.startsWith("https://") || s.startsWith("blob:") || s.startsWith("data:")) return s;
+    if (s.startsWith("/api/media/")) return `${BACKEND_URL}${s.replace(/^\/api/, "")}`;
     if (s.startsWith("/media/")) return `${BACKEND_URL}${s}`;
     if (s.startsWith("media/")) return `${BACKEND_URL}/${s}`;
     if (s.startsWith("/")) return `${BACKEND_URL}${s}`;
@@ -71,6 +75,30 @@ export default function Patients() {
     </svg>`;
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   })();
+
+  async function loadImageWithAuthFallback(src, patientId) {
+    if (!src || src.startsWith("data:") || src.startsWith("blob:")) return;
+    const cached = objectUrlCacheRef.current.get(src);
+    if (cached) {
+      setImgFallbackMap((prev) => ({ ...prev, [patientId]: cached }));
+      return;
+    }
+    try {
+      const res = await API.get(src, { responseType: "blob" });
+      const url = URL.createObjectURL(res.data);
+      objectUrlCacheRef.current.set(src, url);
+      setImgFallbackMap((prev) => ({ ...prev, [patientId]: url }));
+    } catch (_err) {
+      setImgFallbackMap((prev) => ({ ...prev, [patientId]: svgPlaceholder }));
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      for (const url of objectUrlCacheRef.current.values()) URL.revokeObjectURL(url);
+      objectUrlCacheRef.current.clear();
+    };
+  }, []);
 
   function handleChange(e) {
     const { name, value, files } = e.target;
@@ -174,9 +202,9 @@ export default function Patients() {
         <button type="submit">{editingId ? "Update Patient" : "Add Patient"}</button>
         {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}
       </form>
-      <p>{status}</p>
+      <p className="status-msg">{status}</p>
       {patients.map((p) => (
-        <div key={p.id} style={{ border: "1px solid #ddd", padding: 10, marginBottom: 8 }}>
+        <div key={p.id} className="crud-record-card">
           {(() => {
             const rawSrc = getPhotoUrl(p.photo || p.photo_url || p.image || p.photo_path);
             const src = imgFallbackMap[p.id] || rawSrc || svgPlaceholder;
@@ -186,21 +214,22 @@ export default function Patients() {
             alt={p.name || "patient"}
             style={{ width: 120, height: 80, objectFit: "cover", background: "#eee" }}
             onError={() => {
-              setImgFallbackMap((prev) => ({ ...prev, [p.id]: svgPlaceholder }));
+              loadImageWithAuthFallback(rawSrc, p.id);
             }}
           />
             );
           })()}
           <strong>{p.name}</strong>
           <div>{p.species} {p.breed || ""}</div>
-          <button type="button" onClick={() => startEdit(p)}>Edit</button>
-          <button type="button" onClick={() => handleDelete(p.id)}>Delete</button>
+          <button type="button" className="action-btn" onClick={() => startEdit(p)}>Edit</button>
+          <button type="button" className="action-btn" onClick={() => handleDelete(p.id)}>Delete</button>
         </div>
       ))}
       </div>
     </div>
   );
 }
+
 
 
 
