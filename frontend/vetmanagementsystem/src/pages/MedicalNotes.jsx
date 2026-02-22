@@ -139,14 +139,17 @@ export default function MedicalNotes() {
       <div className="crud-content">
       <h1>Medical Notes</h1>
       <form onSubmit={handleSubmit}>
+        <label>Patient</label>
         <select name="patient" value={form.patient} onChange={handleChange} required>
           <option value="">Select patient</option>
           {patients.map((p) => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}
         </select>
+        <label>Visit</label>
         <select name="visit" value={form.visit} onChange={handleChange} required>
           <option value="">Select visit</option>
           {visits.map((v) => <option key={v.id} value={v.id}>{v.visit_date || `Visit ${v.id}`}</option>)}
         </select>
+        <label>Medical Note</label>
         <textarea name="body" value={form.body} onChange={handleChange} required />
         <button type="submit">{editingId ? "Update Note" : "Add Note"}</button>
         {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}

@@ -164,12 +164,14 @@ export default function Visits() {
       <div className="crud-content">
       <h1>Visits</h1>
       <form onSubmit={handleSubmit}>
+        <label>Patient</label>
         <select name="patient" value={form.patient} onChange={handleChange} required>
           <option value="">Select patient</option>
           {patients.map((p) => (
             <option key={p.id} value={p.id}>{p.name || p.id}</option>
           ))}
         </select>
+        <label>Veterinarian</label>
         <select name="veterinarian" value={form.veterinarian} onChange={handleChange}>
           <option value="">No vet</option>
           {vets.map((v) => (
@@ -178,10 +180,15 @@ export default function Visits() {
             </option>
           ))}
         </select>
+        <label>Visit Date and Time</label>
         <input type="datetime-local" name="visit_date" value={form.visit_date} onChange={handleChange} required />
+        <label>Visit Status</label>
         <input name="visit_status" value={form.visit_status} onChange={handleChange} />
+        <label>Location Status</label>
         <input name="location_status" value={form.location_status} onChange={handleChange} />
+        <label>Age (Months)</label>
         <input type="number" name="age_months" value={form.age_months} onChange={handleChange} />
+        <label>Notes</label>
         <textarea name="notes" value={form.notes} onChange={handleChange} />
         <button type="submit">{editingId ? "Update Visit" : "Add Visit"}</button>
         {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}

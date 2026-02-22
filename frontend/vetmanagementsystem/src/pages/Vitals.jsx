@@ -167,19 +167,27 @@ export default function Vitals() {
       <div className="crud-content">
       <h1>Vitals</h1>
       <form onSubmit={handleSubmit}>
+        <label>Patient</label>
         <select name="patient" value={form.patient} onChange={handleChange} required>
           <option value="">Select patient</option>
           {patients.map((p) => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}
         </select>
+        <label>Visit (Optional)</label>
         <select name="visit" value={form.visit} onChange={handleChange}>
           <option value="">Select visit (optional)</option>
           {visits.map((v) => <option key={v.id} value={v.id}>{v.visit_date || `Visit ${v.id}`}</option>)}
         </select>
+        <label>Temperature</label>
         <input type="number" step="0.1" name="temperature" value={form.temperature} onChange={handleChange} placeholder="Temperature" />
+        <label>Heart Rate</label>
         <input type="number" name="heart_rate" value={form.heart_rate} onChange={handleChange} placeholder="Heart rate" />
+        <label>Respiratory Rate</label>
         <input type="number" name="respiratory_rate" value={form.respiratory_rate} onChange={handleChange} placeholder="Respiratory rate" />
+        <label>Weight (kg)</label>
         <input type="number" step="0.01" name="weight_kg" value={form.weight_kg} onChange={handleChange} placeholder="Weight kg" />
+        <label>Recorded At</label>
         <input type="datetime-local" name="recorded_at" value={form.recorded_at} onChange={handleChange} required />
+        <label>Notes</label>
         <textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Notes" />
         <button type="submit">{editingId ? "Update Vitals" : "Add Vitals"}</button>
         {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}

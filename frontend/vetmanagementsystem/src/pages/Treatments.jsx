@@ -155,17 +155,23 @@ export default function Treatments() {
       <div className="crud-content">
       <h1>Treatments</h1>
       <form onSubmit={handleSubmit}>
+        <label>Patient</label>
         <select name="patient" value={form.patient} onChange={handleChange} required>
           <option value="">Select patient</option>
           {patients.map((p) => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}
         </select>
+        <label>Visit</label>
         <select name="visit" value={form.visit} onChange={handleChange} required>
           <option value="">Select visit</option>
           {visits.map((v) => <option key={v.id} value={v.id}>{v.visit_date || `Visit ${v.id}`}</option>)}
         </select>
+        <label>Treatment Name</label>
         <input name="name" value={form.name} onChange={handleChange} placeholder="Treatment name" required />
+        <label>Treatment Date</label>
         <input type="date" name="date" value={form.date} onChange={handleChange} />
+        <label>Veterinarian</label>
         <input name="veterinarian" value={form.veterinarian} onChange={handleChange} placeholder="Veterinarian" />
+        <label>Description</label>
         <textarea name="description" value={form.description} onChange={handleChange} placeholder="Description" />
         <button type="submit">{editingId ? "Update Treatment" : "Add Treatment"}</button>
         {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}

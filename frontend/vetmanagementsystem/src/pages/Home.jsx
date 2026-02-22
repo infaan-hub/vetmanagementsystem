@@ -90,20 +90,33 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="home-panel split">
-          <div>
+        <section className="home-panel split premium">
+          <div className="premium-card">
             <h3>Why Choose Us</h3>
-            <ul>
-              <li>Fast</li>
-              <li>Secure</li>
-              <li>Easy to use</li>
-            </ul>
+            <div className="trust-grid">
+              <article className="trust-item">
+                <span className="trust-badge">Fast</span>
+                <p>Quick workflows for doctors and customers.</p>
+              </article>
+              <article className="trust-item">
+                <span className="trust-badge">Secure</span>
+                <p>Protected records and controlled access.</p>
+              </article>
+              <article className="trust-item">
+                <span className="trust-badge">Reliable</span>
+                <p>Stable data tracking for every patient case.</p>
+              </article>
+              <article className="trust-item">
+                <span className="trust-badge">Easy</span>
+                <p>Clean screens that are simple to use daily.</p>
+              </article>
+            </div>
           </div>
-          <div>
-            <h3>Contact & Location</h3>
-            <p>Email: infaanhameed.com</p>
-            <p>Phone: +255 711 252 758</p>
-            <p>Morrocco Street, Fuoni, Zanzibar</p>
+          <div className="premium-card contact-card">
+            <h3>Contact Us</h3>
+            <p className="contact-line"><strong>Email</strong> infaanhameed.com</p>
+            <p className="contact-line"><strong>Phone</strong> +255 711 252 758</p>
+            <p className="contact-line"><strong>Address</strong> Morrocco Street, Fuoni, Zanzibar</p>
           </div>
         </section>
 
@@ -208,8 +221,75 @@ export default function Home() {
           grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 14px;
         }
-        .split ul { margin: 8px 0 0; padding-left: 18px; }
-        .split p { margin: 6px 0; }
+        .premium {
+          background: transparent;
+          box-shadow: none;
+          padding: 0;
+        }
+        .premium-card {
+          background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(255,255,255,0.72));
+          border: 1px solid rgba(255,255,255,0.62);
+          backdrop-filter: blur(12px);
+          border-radius: 18px;
+          box-shadow: 0 14px 34px rgba(0, 0, 0, 0.14);
+          padding: 18px;
+        }
+        .premium-card h3 {
+          margin: 0 0 10px;
+          font-size: 23px;
+          letter-spacing: .2px;
+        }
+        .trust-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+        }
+        .trust-item {
+          background: rgba(255, 255, 255, 0.72);
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          border-radius: 14px;
+          padding: 12px;
+        }
+        .trust-badge {
+          display: inline-block;
+          background: #111;
+          color: #fff;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 700;
+          padding: 5px 10px;
+          margin-bottom: 8px;
+        }
+        .trust-item p {
+          margin: 0;
+          font-size: 14px;
+          line-height: 1.45;
+          color: #2d2d2d;
+        }
+        .contact-card {
+          background: linear-gradient(165deg, rgba(18,18,18,0.9), rgba(44,44,44,0.82));
+          color: #fff;
+          border-color: rgba(255,255,255,0.2);
+        }
+        .contact-card h3 {
+          margin-bottom: 14px;
+        }
+        .contact-line {
+          margin: 0 0 12px;
+          padding: 10px 12px;
+          border-radius: 12px;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.16);
+          line-height: 1.45;
+        }
+        .contact-line strong {
+          display: block;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: .8px;
+          opacity: 0.82;
+          margin-bottom: 2px;
+        }
         .banner { text-align: center; }
         .banner-actions {
           display: flex;
@@ -281,6 +361,9 @@ export default function Home() {
             font-size: 15px;
           }
           .split {
+            grid-template-columns: 1fr;
+          }
+          .trust-grid {
             grid-template-columns: 1fr;
           }
         }

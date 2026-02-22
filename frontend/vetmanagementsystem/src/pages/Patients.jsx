@@ -259,17 +259,26 @@ export default function Patients() {
       <div className="crud-content">
       <h1>Patients</h1>
       <form onSubmit={handleSubmit}>
+        <label>Name</label>
         <input name="name" value={form.name} onChange={handleChange} placeholder="Name" required />
+        <label>Species</label>
         <input name="species" value={form.species} onChange={handleChange} placeholder="Species" required />
+        <label>Breed</label>
         <input name="breed" value={form.breed} onChange={handleChange} placeholder="Breed" />
+        <label>Gender</label>
         <input name="gender" value={form.gender} onChange={handleChange} placeholder="Gender" />
+        <label>Color</label>
         <input name="color" value={form.color} onChange={handleChange} placeholder="Color" />
+        <label>Date of Birth</label>
         <input type="date" name="date_of_birth" value={form.date_of_birth} onChange={handleChange} />
+        <label>Weight (kg)</label>
         <input type="number" step="0.01" name="weight_kg" value={form.weight_kg} onChange={handleChange} placeholder="Weight kg" />
+        <label>Client</label>
         <select name="client" value={form.client} onChange={handleChange} required>
           <option value="">Select client</option>
           {clients.map((c) => <option key={c.id} value={c.id}>{c.full_name || c.username || c.id}</option>)}
         </select>
+        <label>Patient Photo</label>
         <input ref={fileRef} type="file" name="photo" accept="image/*" onChange={handleChange} />
         <button type="submit">{editingId ? "Update Patient" : "Add Patient"}</button>
         {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}

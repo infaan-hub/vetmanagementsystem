@@ -74,6 +74,11 @@ export const crudThemeStyles = `
   padding:10px 12px;
   font-size:14px;
 }
+.crud-page label{
+  display:block;
+  font-weight:700;
+  margin:2px 0 4px;
+}
 .crud-page textarea{min-height:88px}
 .crud-page button{
   width:auto;

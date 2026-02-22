@@ -177,6 +177,7 @@ export default function Documents() {
       <h1>Documents</h1>
       <div className="crud-record-card">
         <h3>Generate Full Patient PDF Report</h3>
+        <label>Patient For Report</label>
         <select value={reportPatientId} onChange={(e) => setReportPatientId(e.target.value)}>
           <option value="">Select patient</option>
           {patients.map((p) => (
@@ -190,12 +191,16 @@ export default function Documents() {
         </button>
       </div>
       <form onSubmit={handleSubmit}>
+        <label>Patient</label>
         <select name="patient" value={form.patient} onChange={handleChange} required>
           <option value="">Select patient</option>
           {patients.map((p) => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}
         </select>
+        <label>Title</label>
         <input name="title" value={form.title} onChange={handleChange} placeholder="Title" required />
+        <label>File</label>
         <input ref={fileRef} type="file" name="file" onChange={handleChange} />
+        <label>Description</label>
         <textarea name="description" value={form.description} onChange={handleChange} placeholder="Description" />
         <button type="submit">{editingId ? "Update Document" : "Add Document"}</button>
         {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}
