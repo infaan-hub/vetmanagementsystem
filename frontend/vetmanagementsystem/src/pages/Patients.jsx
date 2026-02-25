@@ -317,7 +317,8 @@ export default function Patients() {
       </aside>
       <main className="crud-main">
       <div className="crud-content">
-      <h1>Patients</h1>
+      <h1>Patients 🐾</h1>
+      <p className="page-desc">Complete patient profiles, photos, and care details in one place.</p>
       <form onSubmit={handleSubmit}>
         <label>Name</label>
         <input name="name" value={form.name} onChange={handleChange} placeholder="Name" required />

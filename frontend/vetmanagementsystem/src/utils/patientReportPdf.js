@@ -163,87 +163,264 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
   const pageHeight = doc.internal.pageSize.getHeight();
   const marginX = 40;
   const maxWidth = pageWidth - marginX * 2;
-  let y = 44;
+  let y = 38;
+
+  const colors = {
+    black: [10, 10, 10],
+    white: [255, 255, 255],
+    green: [16, 123, 88],
+    red: [186, 45, 45],
+    softGray: [242, 244, 246],
+    line: [220, 224, 228],
+  };
 
   function ensureSpace(lines = 1) {
-    if (y + lines * 18 > pageHeight - 40) {
+    if (y + lines * 18 > pageHeight - 50) {
       doc.addPage();
-      y = 44;
+      y = 40;
     }
   }
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.text("Veterinary Management System", marginX, y);
-  y += 24;
+  function drawHeader() {
+    doc.setFillColor(...colors.black);
+    doc.rect(0, 0, pageWidth, 90, "F");
+    doc.setFillColor(...colors.green);
+    doc.rect(0, 90, pageWidth, 4, "F");
+
+    doc.setTextColor(...colors.white);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.text("Veterinary Management System", marginX, 36);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text("Premium Patient Report", marginX, 56);
+
+    doc.setTextColor(...colors.red);
+    doc.text("Confidential Medical Record", pageWidth - marginX, 56, { align: "right" });
+
+    doc.setTextColor(...colors.black);
+    y = 120;
+  }
+
+  function drawSectionTitle(title) {
+    ensureSpace(2);
+    doc.setFillColor(...colors.softGray);
+    doc.rect(marginX, y - 14, maxWidth, 24, "F");
+    doc.setTextColor(...colors.black);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text(title, marginX + 12, y + 2);
+    y += 26;
+  }
+
+  function drawKeyValueTable(rows) {
+    const labelW = 150;
+    const valueW = maxWidth - labelW;
+    const rowH = 18;
+
+    rows.forEach(([label, value]) => {
+      ensureSpace(1.5);
+      doc.setDrawColor(...colors.line);
+      doc.rect(marginX, y - 12, maxWidth, rowH, "S");
+
+      doc.setTextColor(...colors.black);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text(label, marginX + 8, y + 2);
+
+      doc.setFont("helvetica", "normal");
+      const wrapped = doc.splitTextToSize(String(value || "-"), valueW - 12);
+      doc.text(wrapped, marginX + labelW + 6, y + 2);
+
+      y += rowH;
+    });
+    y += 8;
+  }
+
+  function drawTableHeader(cols) {
+    const total = cols.reduce((s, c) => s + c.w, 0);
+    const scale = maxWidth / total;
+    let x = marginX;
+    doc.setFillColor(...colors.black);
+    doc.rect(marginX, y - 14, maxWidth, 20, "F");
+    doc.setTextColor(...colors.white);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    cols.forEach((c) => {
+      const w = c.w * scale;
+      doc.text(c.label, x + 6, y);
+      x += w;
+    });
+    y += 14;
+  }
+
+  function drawTableRows(cols, rows) {
+    const total = cols.reduce((s, c) => s + c.w, 0);
+    const scale = maxWidth / total;
+    rows.forEach((row, idx) => {
+      ensureSpace(2);
+      const rowHeight = 18;
+      doc.setDrawColor(...colors.line);
+      doc.rect(marginX, y - 12, maxWidth, rowHeight, "S");
+      if (idx % 2 === 0) {
+        doc.setFillColor(...colors.softGray);
+        doc.rect(marginX, y - 12, maxWidth, rowHeight, "F");
+      }
+      let x = marginX;
+      doc.setTextColor(...colors.black);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      cols.forEach((c) => {
+        const w = c.w * scale;
+        const text = String(row[c.key] || "-");
+        const wrapped = doc.splitTextToSize(text, w - 10);
+        doc.text(wrapped, x + 6, y);
+        x += w;
+      });
+      y += rowHeight;
+    });
+    y += 10;
+  }
+
+  drawHeader();
 
   const cachedPhoto = getPatientPhotoData(patient);
   if (cachedPhoto) {
     try {
       const normalized = await normalizePhotoForPdf(cachedPhoto);
       if (!normalized) throw new Error("unsupported photo format");
-      const passportW = 100;
-      const passportH = 130;
+      const passportW = 110;
+      const passportH = 140;
       const photoX = pageWidth - marginX - passportW;
-      const photoY = 30;
+      const photoY = 108;
       doc.addImage(normalized.dataUrl, normalized.format, photoX, photoY, passportW, passportH);
     } catch (_err) {}
   }
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  const patientLines = [
-    `Patient: ${patient.name || "-"}`,
-    `Patient ID: ${patient.patient_id || patient.id || "-"}`,
-    `Species: ${patient.species || "-"}   Breed: ${patient.breed || "-"}`,
-    `Gender: ${patient.gender || "-"}   DOB: ${patient.date_of_birth || "-"}`,
-    `Color: ${patient.color || "-"}   Weight: ${patient.weight_kg || "-"} kg`,
-    `Client: ${client?.full_name || client?.name || client?.username || "-"}`,
-    `Client Email: ${client?.email || "-"}`,
-    `Generated At: ${new Date().toLocaleString()}`,
-  ];
-  patientLines.forEach((line) => {
-    ensureSpace();
-    doc.text(line, marginX, y);
-    y += 16;
-  });
+  drawSectionTitle("Patient & Client Details");
+  drawKeyValueTable([
+    ["Patient Name", patient.name || "-"],
+    ["Patient ID", patient.patient_id || patient.id || "-"],
+    ["Species", patient.species || "-"],
+    ["Breed", patient.breed || "-"],
+    ["Gender", patient.gender || "-"],
+    ["Date of Birth", patient.date_of_birth || "-"],
+    ["Color", patient.color || "-"],
+    ["Weight (kg)", patient.weight_kg || "-"],
+    ["Client Name", client?.full_name || client?.name || client?.username || "-"],
+    ["Client Email", client?.email || "-"],
+    ["Generated At", new Date().toLocaleString()],
+  ]);
 
-  y += 8;
   const orderedSections = [
-    ["allergies", "Allergies"],
-    ["visits", "Visits"],
-    ["vitals", "Vitals"],
-    ["medical_notes", "Medical Notes"],
-    ["medications", "Medications"],
-    ["documents", "Documents"],
-    ["treatments", "Treatments"],
+    ["allergies", "Allergies", [
+      { label: "Severity", key: "severity", w: 80 },
+      { label: "Description", key: "description", w: 420 },
+    ]],
+    ["visits", "Visits", [
+      { label: "Date", key: "date", w: 120 },
+      { label: "Status", key: "status", w: 120 },
+      { label: "Notes", key: "notes", w: 260 },
+    ]],
+    ["vitals", "Vitals", [
+      { label: "Recorded", key: "recorded", w: 150 },
+      { label: "Temp", key: "temp", w: 70 },
+      { label: "HR", key: "hr", w: 60 },
+      { label: "RR", key: "rr", w: 60 },
+      { label: "Weight", key: "weight", w: 120 },
+    ]],
+    ["medical_notes", "Medical Notes", [
+      { label: "Date", key: "date", w: 120 },
+      { label: "Note", key: "note", w: 380 },
+    ]],
+    ["medications", "Medications", [
+      { label: "Name", key: "name", w: 160 },
+      { label: "Dosage", key: "dosage", w: 120 },
+      { label: "Frequency", key: "frequency", w: 120 },
+      { label: "Duration", key: "duration", w: 100 },
+    ]],
+    ["documents", "Documents", [
+      { label: "Title", key: "title", w: 220 },
+      { label: "Issued", key: "issued", w: 120 },
+      { label: "Type", key: "type", w: 160 },
+    ]],
+    ["treatments", "Treatments", [
+      { label: "Name", key: "name", w: 160 },
+      { label: "Date", key: "date", w: 120 },
+      { label: "Description", key: "desc", w: 220 },
+    ]],
   ];
 
-  orderedSections.forEach(([key, title]) => {
+  orderedSections.forEach(([key, title, cols]) => {
     const rows = sections[key] || [];
-    ensureSpace(2);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.text(`${title} (${rows.length})`, marginX, y);
-    y += 18;
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
+    drawSectionTitle(`${title} (${rows.length})`);
     if (!rows.length) {
-      ensureSpace();
-      doc.text("- No records", marginX + 10, y);
-      y += 14;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(...colors.black);
+      doc.text("No records available.", marginX + 8, y);
+      y += 18;
       return;
     }
 
-    rows.forEach((row) => {
-      const text = `- ${sectionLine(key, row)}`;
-      const wrapped = doc.splitTextToSize(text, maxWidth - 10);
-      ensureSpace(wrapped.length + 1);
-      doc.text(wrapped, marginX + 10, y);
-      y += wrapped.length * 12 + 4;
+    drawTableHeader(cols);
+
+    const tableRows = rows.map((row) => {
+      if (key === "allergies") {
+        return {
+          severity: row.severity_level || "-",
+          description: row.description || row.notes || "-",
+        };
+      }
+      if (key === "visits") {
+        return {
+          date: row.visit_date || "-",
+          status: row.visit_status || "-",
+          notes: row.notes || row.reason || "-",
+        };
+      }
+      if (key === "vitals") {
+        return {
+          recorded: row.recorded_at || "-",
+          temp: row.temperature ?? "-",
+          hr: row.heart_rate ?? "-",
+          rr: row.respiratory_rate ?? row.respiration ?? "-",
+          weight: row.weight_kg ?? row.weight_lbs ?? "-",
+        };
+      }
+      if (key === "medical_notes") {
+        return {
+          date: row.created_at || "-",
+          note: row.note || row.body || "-",
+        };
+      }
+      if (key === "medications") {
+        return {
+          name: row.name || "-",
+          dosage: row.dosage || "-",
+          frequency: row.frequency || "-",
+          duration: row.duration || "-",
+        };
+      }
+      if (key === "documents") {
+        return {
+          title: row.title || row.document_type || "Document",
+          issued: row.issued_date || row.created_at || "-",
+          type: row.document_type || "-",
+        };
+      }
+      if (key === "treatments") {
+        return {
+          name: row.name || row.diagnosis || "Treatment",
+          date: row.date || row.follow_up_date || "-",
+          desc: row.description || row.treatment_description || "-",
+        };
+      }
+      return {};
     });
-    y += 4;
+
+    drawTableRows(cols, tableRows);
   });
 
   const safeName = String(patient.name || `patient-${patient.id || "report"}`).replace(/[^\w.-]+/g, "_");

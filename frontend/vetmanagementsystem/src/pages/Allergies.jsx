@@ -150,7 +150,8 @@ export default function Allergies() {
 
       <main className="main">
         <div className="card">
-          <h1>Allergies</h1>
+          <h1>Allergies 🐾</h1>
+          <p className="page-desc">Track sensitivities clearly to keep every patient safe.</p>
           <form onSubmit={handleSubmit}>
             <div className="grid">
               <div>

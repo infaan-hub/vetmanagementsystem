@@ -5,6 +5,13 @@ body {
   min-height: 100vh;
 }
 
+.page-desc {
+  margin: 6px 0 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.7);
+}
+
 .center {
   min-height: 100vh;
   display: flex;

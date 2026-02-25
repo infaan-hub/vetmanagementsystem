@@ -206,7 +206,8 @@ body{
 
       <main className="main">
         <div className="topbar">
-          <h1>Veterinary Management System Doctor Overview🩺🐾</h1>
+          <h1>Veterinary Management System Doctor Overview 🩺🐾</h1>
+          <p className="page-desc">Key clinical insights and next actions at a glance.</p>
           <div className="profile">
             <button className="profile-btn" onClick={() => setMenuOpen((v) => !v)}>
               👨‍⚕️ {username}
@@ -256,7 +257,7 @@ body{
 
           {activeTab === "appointments" ? (
             <div className="overview-section" id="appointments-tab">
-              <h2>Appointments</h2>
+              <h2>Appointments 🐾</h2>
               <table className="overview-table">
                 <thead>
                   <tr>
@@ -297,7 +298,7 @@ body{
 
           {activeTab === "receipts" ? (
             <div className="overview-section" id="receipts-tab">
-              <h2>Receipts</h2>
+              <h2>Receipts 🐾</h2>
               <table className="overview-table">
                 <thead>
                   <tr>

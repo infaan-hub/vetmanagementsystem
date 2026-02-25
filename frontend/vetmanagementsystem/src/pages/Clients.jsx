@@ -20,7 +20,8 @@ export default function Clients() {
   return (
     <div style={{minHeight:"100vh", backgroundImage:"url('https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg')", backgroundSize:"cover", padding:"20px"}}>
       <Navbar role="doctor" />
-      <h1>Clients</h1>
+      <h1>Clients 🐾</h1>
+      <p className="page-desc">Keep client contacts and history organized and accessible.</p>
       <ul>
         {clients.map(c => <li key={c.id}>{c.full_name} ({c.username})</li>)}
       </ul>

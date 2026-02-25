@@ -162,7 +162,8 @@ export default function Visits() {
       </aside>
       <main className="crud-main">
       <div className="crud-content">
-      <h1>Visits</h1>
+      <h1>Visits 🐾</h1>
+      <p className="page-desc">Document every visit with time, status, and notes.</p>
       <form onSubmit={handleSubmit}>
         <label>Patient</label>
         <select name="patient" value={form.patient} onChange={handleChange} required>

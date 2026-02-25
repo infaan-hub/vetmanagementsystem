@@ -165,7 +165,8 @@ export default function Vitals() {
       </aside>
       <main className="crud-main">
       <div className="crud-content">
-      <h1>Vitals</h1>
+      <h1>Vitals 🐾</h1>
+      <p className="page-desc">Monitor key health indicators for better decisions.</p>
       <form onSubmit={handleSubmit}>
         <label>Patient</label>
         <select name="patient" value={form.patient} onChange={handleChange} required>

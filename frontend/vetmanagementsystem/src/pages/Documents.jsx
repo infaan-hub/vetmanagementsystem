@@ -174,9 +174,10 @@ export default function Documents() {
       </aside>
       <main className="crud-main">
       <div className="crud-content">
-      <h1>Documents</h1>
+      <h1>Documents 🐾</h1>
+      <p className="page-desc">Premium records and reports for every patient visit.</p>
       <div className="crud-record-card">
-        <h3>Generate Full Patient PDF Report</h3>
+        <h3>Generate Full Patient PDF Report 🐾</h3>
         <label>Patient For Report</label>
         <select value={reportPatientId} onChange={(e) => setReportPatientId(e.target.value)}>
           <option value="">Select patient</option>

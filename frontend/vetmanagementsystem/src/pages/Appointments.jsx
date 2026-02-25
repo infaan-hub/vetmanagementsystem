@@ -207,7 +207,8 @@ export default function Appointments() {
 
       <main className="main">
         <section className="hero">
-          <h1>Appointments</h1>
+          <h1>Appointments 🐾</h1>
+          <p className="page-desc">Plan visits with clarity and minimize wait time.</p>
         </section>
 
         <section className="form-card">
@@ -267,4 +268,3 @@ export default function Appointments() {
     </div>
   );
 }
-

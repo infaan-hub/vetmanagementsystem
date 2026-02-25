@@ -137,7 +137,8 @@ export default function MedicalNotes() {
       </aside>
       <main className="crud-main">
       <div className="crud-content">
-      <h1>Medical Notes</h1>
+      <h1>Medical Notes 🐾</h1>
+      <p className="page-desc">Capture clinical observations with clarity and care.</p>
       <form onSubmit={handleSubmit}>
         <label>Patient</label>
         <select name="patient" value={form.patient} onChange={handleChange} required>

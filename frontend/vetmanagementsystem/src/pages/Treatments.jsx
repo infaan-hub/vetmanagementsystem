@@ -153,7 +153,8 @@ export default function Treatments() {
       </aside>
       <main className="crud-main">
       <div className="crud-content">
-      <h1>Treatments</h1>
+      <h1>Treatments 🐾</h1>
+      <p className="page-desc">Plan and review treatment steps with precision.</p>
       <form onSubmit={handleSubmit}>
         <label>Patient</label>
         <select name="patient" value={form.patient} onChange={handleChange} required>

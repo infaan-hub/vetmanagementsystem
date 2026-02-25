@@ -190,7 +190,8 @@ export default function Receipts() {
 
       <main className="main">
         <section className="hero">
-          <h1>Receipts</h1>
+          <h1>Receipts 🐾</h1>
+          <p className="page-desc">Clear billing records for every client and visit.</p>
         </section>
 
         <section className="form-card">
@@ -250,4 +251,3 @@ export default function Receipts() {
     </div>
   );
 }
-

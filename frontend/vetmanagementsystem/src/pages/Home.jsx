@@ -71,14 +71,14 @@ export default function Home() {
       <main className="home-main">
         <section className="home-panel hero">
           <h2>Welcome to Veterinary Management System🐾</h2>
-          <p>
+          <p className="page-desc">
             Manage pets, appointments, treatments, and medical records in one
             secure and easy platform for doctors and customers.
           </p>
         </section>
 
         <section className="home-panel">
-          <h3>Features</h3>
+          <h3>Features 🐾</h3>
           <div className="feature-grid">
             {features.map((item) => (
               <article key={item.title} className="feature-card">
@@ -92,7 +92,7 @@ export default function Home() {
 
         <section className="home-panel split premium">
           <div className="premium-card">
-            <h3>Why Choose Us</h3>
+            <h3>Why Choose Us 🐾</h3>
             <div className="trust-grid">
               <article className="trust-item">
                 <span className="trust-badge">Fast</span>
@@ -113,7 +113,7 @@ export default function Home() {
             </div>
           </div>
           <div className="premium-card contact-card">
-            <h3>Contact Us</h3>
+            <h3>Contact Us 🐾</h3>
             <p className="contact-line"><strong>Email</strong> infaanhameed.com</p>
             <p className="contact-line"><strong>Phone</strong> +255 711 252 758</p>
             <p className="contact-line"><strong>Address</strong> Morrocco Street, Fuoni, Zanzibar</p>
@@ -121,7 +121,7 @@ export default function Home() {
         </section>
 
         <section className="home-panel banner">
-          <h3>Already have an account?</h3>
+          <h3>Already have an account? 🐾</h3>
           <div className="banner-actions">
             <Link to="/login" className="home-btn black">Customer Login</Link>
             <Link to="/doctor/login" className="home-btn black">Doctor Login</Link>

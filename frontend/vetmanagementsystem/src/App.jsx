@@ -16,7 +16,6 @@ import Appointments from "./pages/Appointments";
 import Receipts from "./pages/Receipts";
 import Allergies from "./pages/Allergies";
 import Vitals from "./pages/Vitals";
-import Communications from "./pages/Communications";
 import MedicalNotes from "./pages/MedicalNotes";
 import Documents from "./pages/Documents";
 import Treatments from "./pages/Treatments";
@@ -126,14 +125,6 @@ function App() {
           }
         />
 
-        <Route
-          path="/communications"
-          element={
-            <PrivateRoute allowedRoles={["doctor"]}>
-              <Communications />
-            </PrivateRoute>
-          }
-        />
 
         <Route
           path="/medical-notes"

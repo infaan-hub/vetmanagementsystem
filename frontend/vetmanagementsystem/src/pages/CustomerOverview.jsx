@@ -157,7 +157,8 @@ body{
 
       <main className="main">
         <div className="topbar">
-          <h1>Veterinary Management System Customer Overview🐾</h1>
+          <h1>Veterinary Management System Customer Overview 🐾</h1>
+          <p className="page-desc">A clear snapshot of patient care for every client.</p>
           <div className="profile">
             <button className="profile-btn" id="profileBtn" onClick={() => setMenuOpen((v) => !v)}>
               {username}
@@ -222,7 +223,7 @@ body{
 
           {activeTab === "allergies" ? (
             <div className="overview-section" id="allergies-tab">
-              <h2>Allergies</h2>
+              <h2>Allergies 🐾</h2>
               <table className="overview-table">
                 <thead>
                   <tr>
@@ -252,7 +253,7 @@ body{
 
           {activeTab === "visits" ? (
             <div className="overview-section" id="visits-tab">
-              <h2>Visits</h2>
+              <h2>Visits 🐾</h2>
               <table className="overview-table">
                 <thead>
                   <tr>
@@ -282,7 +283,7 @@ body{
 
           {activeTab === "vitals" ? (
             <div className="overview-section" id="vitals-tab">
-              <h2>Vitals</h2>
+              <h2>Vitals 🐾</h2>
               <table className="overview-table">
                 <thead>
                   <tr>
@@ -314,7 +315,7 @@ body{
 
           {activeTab === "medical_notes" ? (
             <div className="overview-section" id="medical_notes-tab">
-              <h2>Medical Notes</h2>
+              <h2>Medical Notes 🐾</h2>
               <table className="overview-table">
                 <thead>
                   <tr>
@@ -344,7 +345,7 @@ body{
 
           {activeTab === "medications" ? (
             <div className="overview-section" id="medications-tab">
-              <h2>Medications</h2>
+              <h2>Medications 🐾</h2>
               <table className="overview-table">
                 <thead>
                   <tr>
@@ -376,7 +377,7 @@ body{
 
           {activeTab === "documents" ? (
             <div className="overview-section" id="documents-tab">
-              <h2>Documents</h2>
+              <h2>Documents 🐾</h2>
               <table className="overview-table">
                 <thead>
                   <tr>
@@ -406,7 +407,7 @@ body{
 
           {activeTab === "treatments" ? (
             <div className="overview-section" id="treatments-tab">
-              <h2>Treatments</h2>
+              <h2>Treatments 🐾</h2>
               <table className="overview-table">
                 <thead>
                   <tr>
