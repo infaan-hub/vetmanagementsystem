@@ -72,7 +72,7 @@ export default function Patients() {
           return;
         }
       } catch (_err) {
-        // try next endpoint
+        
       }
     }
 
