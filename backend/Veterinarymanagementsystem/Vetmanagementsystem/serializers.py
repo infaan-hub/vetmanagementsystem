@@ -3,6 +3,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.utils import timezone
+import base64
 from .models import (
     Client, Patient, Appointment, Receipt, Visit, AllergyAlert, VitalSigns,
     ClientCommunicationNote, ClientNote, Medication, Document, TreatmentPlan,CustomUser,
@@ -28,6 +29,44 @@ class ClientRegistrationSerializer(serializers.ModelSerializer):
 # Patient
 # -------------------------
 class PatientSerializer(serializers.ModelSerializer):
+    photo_data = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+    def _extract_photo_data(self, validated_data):
+        photo_data = validated_data.pop("photo_data", None)
+        if photo_data:
+            return photo_data
+
+        photo_file = validated_data.get("photo")
+        if not photo_file:
+            return None
+
+        try:
+            photo_file.seek(0)
+            raw = photo_file.read()
+            if not raw:
+                return None
+            encoded = base64.b64encode(raw).decode("ascii")
+            content_type = getattr(photo_file, "content_type", "") or "image/jpeg"
+            return f"data:{content_type};base64,{encoded}"
+        except Exception:
+            return None
+
+    def create(self, validated_data):
+        photo_data = self._extract_photo_data(validated_data)
+        instance = super().create(validated_data)
+        if photo_data:
+            instance.photo_data = photo_data
+            instance.save(update_fields=["photo_data"])
+        return instance
+
+    def update(self, instance, validated_data):
+        photo_data = self._extract_photo_data(validated_data)
+        instance = super().update(instance, validated_data)
+        if photo_data is not None:
+            instance.photo_data = photo_data
+            instance.save(update_fields=["photo_data"])
+        return instance
+
     class Meta:
         model = Patient
         fields = [
@@ -40,6 +79,7 @@ class PatientSerializer(serializers.ModelSerializer):
             "date_of_birth",
             "weight_kg",
             "photo",
+            "photo_data",
             "client",
             "patient_id",
         ]

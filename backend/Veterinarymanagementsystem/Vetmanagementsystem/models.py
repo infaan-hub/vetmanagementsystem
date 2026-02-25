@@ -65,6 +65,7 @@ class Patient(models.Model):
     date_of_birth = models.DateField(blank=True, null=True)
     weight_kg = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
     photo = models.ImageField(upload_to="patients/photos/", blank=True, null=True)
+    photo_data = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

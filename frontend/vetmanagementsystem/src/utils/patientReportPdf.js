@@ -100,6 +100,13 @@ function getCachedPatientPhoto(patient) {
   return "";
 }
 
+function getPatientPhotoData(patient) {
+  if (patient?.photo_data && String(patient.photo_data).startsWith("data:image/")) {
+    return String(patient.photo_data);
+  }
+  return getCachedPatientPhoto(patient);
+}
+
 function getDataUrlFormat(dataUrl) {
   if (!dataUrl || typeof dataUrl !== "string") return "";
   const match = dataUrl.match(/^data:image\/([a-zA-Z0-9+.-]+);/);
@@ -170,7 +177,7 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
   doc.text("Veterinary Management System", marginX, y);
   y += 24;
 
-  const cachedPhoto = getCachedPatientPhoto(patient);
+  const cachedPhoto = getPatientPhotoData(patient);
   if (cachedPhoto) {
     try {
       const normalized = await normalizePhotoForPdf(cachedPhoto);

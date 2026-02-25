@@ -39,7 +39,14 @@ export default function Patients() {
   async function loadPatients() {
     try {
       const res = await API.get("/patients/");
-      setPatients(toList(res.data));
+      const list = toList(res.data);
+      setPatients(list);
+      list.forEach((p) => {
+        if (p?.photo_data && String(p.photo_data).startsWith("data:image/")) {
+          const keys = [p.id, p.patient_id].filter(Boolean);
+          cachePhotoForKeys(keys, p.photo_data);
+        }
+      });
     } catch (err) {
       console.error(err);
       setStatus("Could not load patients");
@@ -126,6 +133,13 @@ export default function Patients() {
       if (hit) return hit;
     }
     return "";
+  }
+
+  function getPhotoForPatient(patient) {
+    if (patient?.photo_data && String(patient.photo_data).startsWith("data:image/")) {
+      return patient.photo_data;
+    }
+    return getCachedPhotoForPatient(patient);
   }
 
   function fileToDataUrl(file) {
@@ -250,8 +264,12 @@ export default function Patients() {
     const fd = new FormData();
     Object.entries(form).forEach(([k, v]) => {
       if (v === null || v === undefined || v === "") return;
+      if (k === "photo") return;
       fd.append(k, v);
     });
+    if (photoDataUrl) {
+      fd.append("photo_data", photoDataUrl);
+    }
     try {
       let response;
       if (editingId) {
@@ -334,7 +352,7 @@ export default function Patients() {
           <div key={p.id} className="crud-record-card">
             <img
               className="patient-photo"
-              src={getCachedPhotoForPatient(p) || svgPlaceholder}
+              src={getPhotoForPatient(p) || svgPlaceholder}
               alt={p.name || "patient"}
             />
             <strong>{p.name}</strong>
@@ -350,4 +368,3 @@ export default function Patients() {
     </div>
   );
 }
-
