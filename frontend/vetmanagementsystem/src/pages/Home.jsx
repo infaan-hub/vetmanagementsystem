@@ -114,7 +114,7 @@ export default function Home() {
           </div>
           <div className="premium-card contact-card">
             <h3>Contact Us 🐾</h3>
-            <p className="contact-line"><strong>Email</strong> infaanhameed.com</p>
+            <p className="contact-line"><strong>Email</strong> infaanhameed@gmail.com</p>
             <p className="contact-line"><strong>Phone</strong> +255 711 252 758</p>
             <p className="contact-line"><strong>Address</strong> Morrocco Street, Fuoni, Zanzibar</p>
           </div>

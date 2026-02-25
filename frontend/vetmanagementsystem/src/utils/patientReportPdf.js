@@ -168,7 +168,6 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
   const colors = {
     black: [10, 10, 10],
     white: [255, 255, 255],
-    green: [16, 123, 88],
     red: [186, 45, 45],
     softGray: [242, 244, 246],
     line: [220, 224, 228],
@@ -184,7 +183,7 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
   function drawHeader() {
     doc.setFillColor(...colors.black);
     doc.rect(0, 0, pageWidth, 90, "F");
-    doc.setFillColor(...colors.green);
+    doc.setFillColor(...colors.red);
     doc.rect(0, 90, pageWidth, 4, "F");
 
     doc.setTextColor(...colors.white);
@@ -242,7 +241,7 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
     const total = cols.reduce((s, c) => s + c.w, 0);
     const scale = maxWidth / total;
     let x = marginX;
-    doc.setFillColor(...colors.black);
+    doc.setFillColor(...colors.red);
     doc.rect(marginX, y - 14, maxWidth, 20, "F");
     doc.setTextColor(...colors.white);
     doc.setFont("helvetica", "bold");
@@ -286,6 +285,7 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
   drawHeader();
 
   const cachedPhoto = getPatientPhotoData(patient);
+  let photoBottom = 120;
   if (cachedPhoto) {
     try {
       const normalized = await normalizePhotoForPdf(cachedPhoto);
@@ -294,9 +294,13 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
       const passportH = 140;
       const photoX = pageWidth - marginX - passportW;
       const photoY = 108;
+      doc.setFillColor(...colors.white);
+      doc.rect(photoX - 6, photoY - 6, passportW + 12, passportH + 12, "F");
       doc.addImage(normalized.dataUrl, normalized.format, photoX, photoY, passportW, passportH);
+      photoBottom = photoY + passportH + 12;
     } catch (_err) {}
   }
+  y = Math.max(y, photoBottom + 8);
 
   drawSectionTitle("Patient & Client Details");
   drawKeyValueTable([
@@ -309,6 +313,9 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
     ["Color", patient.color || "-"],
     ["Weight (kg)", patient.weight_kg || "-"],
     ["Client Name", client?.full_name || client?.name || client?.username || "-"],
+    ["Client Phone", client?.phone || client?.user?.phone || "-"],
+    ["Client Address", client?.address || client?.user?.address || "-"],
+    ["Client Location", client?.location || "-"],
     ["Client Email", client?.email || "-"],
     ["Generated At", new Date().toLocaleString()],
   ]);
@@ -422,6 +429,21 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
 
     drawTableRows(cols, tableRows);
   });
+
+  const clinicContact = {
+    email: "infaanhameed@gmail.com",
+    phone: "+255 711 252 758",
+    address: "Morrocco Street, Fuoni, Zanzibar",
+    location: "Zanzibar",
+  };
+
+  drawSectionTitle("Clinic Contact");
+  drawKeyValueTable([
+    ["Clinic Email", clinicContact.email],
+    ["Clinic Phone", clinicContact.phone],
+    ["Clinic Address", clinicContact.address],
+    ["Clinic Location", clinicContact.location],
+  ]);
 
   const safeName = String(patient.name || `patient-${patient.id || "report"}`).replace(/[^\w.-]+/g, "_");
   doc.save(`${safeName}_full_report.pdf`);
