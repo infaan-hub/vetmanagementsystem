@@ -130,14 +130,29 @@ button {
     padding-top: 58px !important;
   }
 
-  body:not(.mobile-sidebar-open) .sidebar {
+  body:not(.mobile-sidebar-open) .sidebar,
+  body:not(.mobile-sidebar-open) .crud-sidebar {
     display: none !important;
   }
 
-  body.mobile-sidebar-open .sidebar {
+  body.mobile-sidebar-open .sidebar,
+  body.mobile-sidebar-open .crud-sidebar {
     display: block !important;
     order: -1 !important;
     margin-bottom: 10px !important;
+  }
+
+  .crud-nav {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .crud-nav a {
+    margin-bottom: 0 !important;
+    flex: 1 1 calc(50% - 8px) !important;
+    justify-content: center !important;
+    text-align: center !important;
   }
 
   .content,
@@ -167,5 +182,11 @@ button {
   textarea,
   button {
     max-width: 100% !important;
+  }
+}
+
+@media (max-width: 540px) {
+  .crud-nav a {
+    flex: 1 1 100% !important;
   }
 }

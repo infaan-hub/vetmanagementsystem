@@ -68,6 +68,20 @@ export const crudThemeStyles = `
   display:grid;
   gap:10px;
 }
+.crud-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:14px;
+  margin-top:10px;
+}
+.patient-photo{
+  width:120px;
+  height:160px;
+  object-fit:cover;
+  border-radius:8px;
+  background:#eee;
+  border:1px solid rgba(0,0,0,0.1);
+}
 .crud-page input,.crud-page select,.crud-page textarea,.crud-page button{
   border-radius:12px;
   border:1px solid rgba(0,0,0,0.14);
@@ -92,12 +106,6 @@ export const crudThemeStyles = `
   transform:translateY(-3px);
   background:rgba(0,0,0,0.85);
   color:#fff;
-}
-.crud-list{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:14px;
-  margin-top:10px;
 }
 .crud-record-card{
   background:rgba(255,255,255,0.72);
@@ -132,6 +140,16 @@ export const crudThemeStyles = `
 @media (max-width: 430px){
   .crud-page{
     padding:10px;
+  }
+  .crud-content form{
+    padding:12px;
+  }
+  .crud-page button{
+    width:100%;
+  }
+  .patient-photo{
+    width:96px;
+    height:128px;
   }
 }
 `;

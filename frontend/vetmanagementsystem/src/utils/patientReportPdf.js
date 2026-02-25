@@ -136,7 +136,11 @@ async function imageToDataUrl(imageUrl) {
         reader.onerror = () => resolve("");
         reader.readAsDataURL(blob);
       });
-      if (dataUrl) return dataUrl;
+      if (dataUrl) {
+        const type = String(blob.type || "").toLowerCase();
+        const format = type.includes("png") ? "PNG" : "JPEG";
+        return { dataUrl, format };
+      }
     }
   } catch (_err) {}
 
@@ -150,7 +154,7 @@ async function imageToDataUrl(imageUrl) {
         canvas.height = img.naturalHeight;
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL("image/jpeg", 0.9));
+        resolve({ dataUrl: canvas.toDataURL("image/jpeg", 0.9), format: "JPEG" });
       } catch (_err) {
         resolve("");
       }
@@ -196,10 +200,14 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
   y += 24;
 
   const photoUrl = getPatientPhotoCandidate(patient);
-  const photoDataUrl = await imageToDataUrl(photoUrl);
-  if (photoDataUrl) {
+  const photoPayload = await imageToDataUrl(photoUrl);
+  if (photoPayload?.dataUrl) {
     try {
-      doc.addImage(photoDataUrl, "JPEG", pageWidth - 120, 30, 70, 70);
+      const passportW = 100;
+      const passportH = 130;
+      const photoX = pageWidth - marginX - passportW;
+      const photoY = 30;
+      doc.addImage(photoPayload.dataUrl, photoPayload.format || "JPEG", photoX, photoY, passportW, passportH);
     } catch (_err) {}
   }
 

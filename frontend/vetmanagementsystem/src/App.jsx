@@ -235,7 +235,7 @@ function MobileSidebarControl() {
 
   useEffect(() => {
     const handleClick = (event) => {
-      const link = event.target.closest(".sidebar a");
+      const link = event.target.closest(".sidebar a, .crud-sidebar a");
       if (link) {
         document.body.classList.remove("mobile-sidebar-open");
       }
@@ -254,7 +254,7 @@ function MobileSidebarControl() {
       aria-label="Toggle sidebar menu"
       onClick={() => document.body.classList.toggle("mobile-sidebar-open")}
     >
-      ☰
+      MENU
     </button>
   );
 }

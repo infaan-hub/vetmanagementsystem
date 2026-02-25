@@ -11,6 +11,7 @@ export default function Patients() {
   const [editingId, setEditingId] = useState(null);
   const [status, setStatus] = useState("");
   const [imgFallbackMap, setImgFallbackMap] = useState({});
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
   const [form, setForm] = useState({
     name: "",
     species: "",
@@ -156,6 +157,16 @@ export default function Patients() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!form.photo) {
+      setPhotoPreviewUrl("");
+      return;
+    }
+    const url = URL.createObjectURL(form.photo);
+    setPhotoPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [form.photo]);
+
   function handleChange(e) {
     const { name, value, files } = e.target;
     if (name === "photo") {
@@ -280,32 +291,37 @@ export default function Patients() {
         </select>
         <label>Patient Photo</label>
         <input ref={fileRef} type="file" name="photo" accept="image/*" onChange={handleChange} />
+        {photoPreviewUrl ? (
+          <img className="patient-photo" src={photoPreviewUrl} alt="Selected patient" />
+        ) : null}
         <button type="submit">{editingId ? "Update Patient" : "Add Patient"}</button>
         {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}
       </form>
       <p className="status-msg">{status}</p>
-      {patients.map((p) => (
-        <div key={p.id} className="crud-record-card">
-          {(() => {
-            const rawSrc = getPhotoUrl(getPhotoCandidate(p));
-            const src = imgFallbackMap[p.id] || rawSrc || svgPlaceholder;
-            return (
-          <img
-            src={src}
-            alt={p.name || "patient"}
-            style={{ width: 120, height: 80, objectFit: "cover", background: "#eee" }}
-            onError={() => {
-              loadImageWithAuthFallback(rawSrc, p.id);
-            }}
-          />
-            );
-          })()}
-          <strong>{p.name}</strong>
-          <div>{p.species} {p.breed || ""}</div>
-          <button type="button" className="action-btn" onClick={() => startEdit(p)}>Edit</button>
-          <button type="button" className="action-btn" onClick={() => handleDelete(p.id)}>Delete</button>
-        </div>
-      ))}
+      <div className="crud-list">
+        {patients.map((p) => (
+          <div key={p.id} className="crud-record-card">
+            {(() => {
+              const rawSrc = getPhotoUrl(getPhotoCandidate(p));
+              const src = imgFallbackMap[p.id] || rawSrc || svgPlaceholder;
+              return (
+                <img
+                  className="patient-photo"
+                  src={src}
+                  alt={p.name || "patient"}
+                  onError={() => {
+                    loadImageWithAuthFallback(rawSrc, p.id);
+                  }}
+                />
+              );
+            })()}
+            <strong>{p.name}</strong>
+            <div>{p.species} {p.breed || ""}</div>
+            <button type="button" className="action-btn" onClick={() => startEdit(p)}>Edit</button>
+            <button type="button" className="action-btn" onClick={() => handleDelete(p.id)}>Delete</button>
+          </div>
+        ))}
+      </div>
       </div>
       </main>
       </div>
