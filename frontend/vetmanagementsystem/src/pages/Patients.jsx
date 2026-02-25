@@ -4,6 +4,7 @@ import { crudThemeStyles } from "../styles/crudThemeStyles";
 
 export default function Patients() {
   const fileRef = useRef(null);
+  const latestPhotoTokenRef = useRef(0);
   const [patients, setPatients] = useState([]);
   const [clients, setClients] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -136,22 +137,32 @@ export default function Patients() {
     });
   }
 
-  useEffect(() => {
-    if (!form.photo) {
-      setPhotoPreviewUrl("");
-      setPhotoDataUrl("");
-      return;
-    }
-    let isActive = true;
-    fileToDataUrl(form.photo).then((dataUrl) => {
-      if (!isActive) return;
-      setPhotoDataUrl(dataUrl || "");
-      setPhotoPreviewUrl(dataUrl || "");
+  async function buildPhotoDataUrl(file) {
+    const raw = await fileToDataUrl(file);
+    if (!raw) return "";
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const maxW = 480;
+          const maxH = 640;
+          const ratio = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight, 1);
+          const targetW = Math.round(img.naturalWidth * ratio);
+          const targetH = Math.round(img.naturalHeight * ratio);
+          const canvas = document.createElement("canvas");
+          canvas.width = targetW;
+          canvas.height = targetH;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, targetW, targetH);
+          resolve(canvas.toDataURL("image/jpeg", 0.82));
+        } catch (_err) {
+          resolve("");
+        }
+      };
+      img.onerror = () => resolve("");
+      img.src = raw;
     });
-    return () => {
-      isActive = false;
-    };
-  }, [form.photo]);
+  }
 
   function handleChange(e) {
     const { name, value, files } = e.target;
@@ -163,7 +174,22 @@ export default function Patients() {
         setForm((s) => ({ ...s, photo: null }));
         return;
       }
+      setStatus("");
       setForm((s) => ({ ...s, photo: file }));
+      setPhotoPreviewUrl("");
+      setPhotoDataUrl("");
+      if (file) {
+        const token = ++latestPhotoTokenRef.current;
+        buildPhotoDataUrl(file).then((dataUrl) => {
+          if (token !== latestPhotoTokenRef.current) return;
+          if (!dataUrl) {
+            setStatus("Failed to read image. Try a smaller file.");
+            return;
+          }
+          setPhotoDataUrl(dataUrl);
+          setPhotoPreviewUrl(dataUrl);
+        });
+      }
       return;
     }
     setForm((s) => ({ ...s, [name]: value }));
@@ -324,5 +350,4 @@ export default function Patients() {
     </div>
   );
 }
-
 
