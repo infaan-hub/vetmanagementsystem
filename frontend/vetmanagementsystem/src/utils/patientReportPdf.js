@@ -83,7 +83,7 @@ function sectionLine(sectionKey, row) {
 
 function getCachedPatientPhoto(patient) {
   try {
-    const raw = sessionStorage.getItem("patientPhotoCache");
+    const raw = localStorage.getItem("patientPhotoCache");
     if (!raw) return "";
     const cache = JSON.parse(raw);
     if (!cache || typeof cache !== "object") return "";
@@ -98,6 +98,41 @@ function getCachedPatientPhoto(patient) {
     }
   } catch (_err) {}
   return "";
+}
+
+function getDataUrlFormat(dataUrl) {
+  if (!dataUrl || typeof dataUrl !== "string") return "";
+  const match = dataUrl.match(/^data:image\/([a-zA-Z0-9+.-]+);/);
+  return match ? match[1].toLowerCase() : "";
+}
+
+function normalizeFormatForPdf(fmt) {
+  if (fmt === "jpeg" || fmt === "jpg") return "JPEG";
+  if (fmt === "png") return "PNG";
+  if (fmt === "webp") return "WEBP";
+  return "";
+}
+
+async function normalizePhotoForPdf(dataUrl) {
+  const fmt = normalizeFormatForPdf(getDataUrlFormat(dataUrl));
+  if (fmt) return { dataUrl, format: fmt };
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        resolve({ dataUrl: canvas.toDataURL("image/jpeg", 0.9), format: "JPEG" });
+      } catch (_err) {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = dataUrl;
+  });
 }
 
 async function ensureJsPdf() {
@@ -138,11 +173,13 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
   const cachedPhoto = getCachedPatientPhoto(patient);
   if (cachedPhoto) {
     try {
+      const normalized = await normalizePhotoForPdf(cachedPhoto);
+      if (!normalized) throw new Error("unsupported photo format");
       const passportW = 100;
       const passportH = 130;
       const photoX = pageWidth - marginX - passportW;
       const photoY = 30;
-      doc.addImage(cachedPhoto, "JPEG", photoX, photoY, passportW, passportH);
+      doc.addImage(normalized.dataUrl, normalized.format, photoX, photoY, passportW, passportH);
     } catch (_err) {}
   }
 

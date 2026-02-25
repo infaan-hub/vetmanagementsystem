@@ -9,6 +9,7 @@ export default function Patients() {
   const [editingId, setEditingId] = useState(null);
   const [status, setStatus] = useState("");
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
+  const [photoDataUrl, setPhotoDataUrl] = useState("");
   const [photoCache, setPhotoCache] = useState(() => readPhotoCache());
   const [form, setForm] = useState({
     name: "",
@@ -88,7 +89,7 @@ export default function Patients() {
 
   function readPhotoCache() {
     try {
-      const raw = sessionStorage.getItem("patientPhotoCache");
+      const raw = localStorage.getItem("patientPhotoCache");
       if (!raw) return {};
       const parsed = JSON.parse(raw);
       return parsed && typeof parsed === "object" ? parsed : {};
@@ -100,7 +101,7 @@ export default function Patients() {
   function writePhotoCache(next) {
     setPhotoCache(next);
     try {
-      sessionStorage.setItem("patientPhotoCache", JSON.stringify(next));
+      localStorage.setItem("patientPhotoCache", JSON.stringify(next));
     } catch (_err) {}
   }
 
@@ -138,19 +139,26 @@ export default function Patients() {
   useEffect(() => {
     if (!form.photo) {
       setPhotoPreviewUrl("");
+      setPhotoDataUrl("");
       return;
     }
-    const url = URL.createObjectURL(form.photo);
-    setPhotoPreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
+    let isActive = true;
+    fileToDataUrl(form.photo).then((dataUrl) => {
+      if (!isActive) return;
+      setPhotoDataUrl(dataUrl || "");
+      setPhotoPreviewUrl(dataUrl || "");
+    });
+    return () => {
+      isActive = false;
+    };
   }, [form.photo]);
 
   function handleChange(e) {
     const { name, value, files } = e.target;
     if (name === "photo") {
       const file = files?.[0] || null;
-      if (file && file.type !== "image/jpeg") {
-        setStatus("Only JPEG images are allowed.");
+      if (file && !file.type.startsWith("image/")) {
+        setStatus("Only image files are allowed.");
         if (fileRef.current) fileRef.current.value = "";
         setForm((s) => ({ ...s, photo: null }));
         return;
@@ -174,6 +182,8 @@ export default function Patients() {
       client: "",
       photo: null,
     });
+    setPhotoPreviewUrl("");
+    setPhotoDataUrl("");
     if (fileRef.current) fileRef.current.value = "";
   }
 
@@ -226,15 +236,14 @@ export default function Patients() {
         response = await API.post("/patients/", fd, { headers: { "Content-Type": "multipart/form-data" } });
         setStatus("Patient added");
       }
-      if (form.photo) {
-        const dataUrl = await fileToDataUrl(form.photo);
+      if (photoDataUrl) {
         const saved = response?.data || {};
         const keys = [
           editingId,
           saved?.id,
           saved?.patient_id,
         ].filter(Boolean);
-        cachePhotoForKeys(keys, dataUrl);
+        cachePhotoForKeys(keys, photoDataUrl);
       }
       clearForm();
       await loadPatients();
@@ -286,7 +295,7 @@ export default function Patients() {
           {clients.map((c) => <option key={c.id} value={c.id}>{c.full_name || c.username || c.id}</option>)}
         </select>
         <label>Patient Photo</label>
-        <input ref={fileRef} type="file" name="photo" accept="image/jpeg" onChange={handleChange} />
+        <input ref={fileRef} type="file" name="photo" accept="image/*" onChange={handleChange} />
         {photoPreviewUrl ? (
           <img className="patient-photo" src={photoPreviewUrl} alt="Selected patient" />
         ) : null}
@@ -315,7 +324,5 @@ export default function Patients() {
     </div>
   );
 }
-
-
 
 
