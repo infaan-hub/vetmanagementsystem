@@ -1,17 +1,15 @@
 ﻿import React, { useEffect, useRef, useState } from "react";
 import API from "../api";
 import { crudThemeStyles } from "../styles/crudThemeStyles";
-import { BACKEND_URL } from "../api/api";
 
 export default function Patients() {
   const fileRef = useRef(null);
-  const objectUrlCacheRef = useRef(new Map());
   const [patients, setPatients] = useState([]);
   const [clients, setClients] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [status, setStatus] = useState("");
-  const [imgFallbackMap, setImgFallbackMap] = useState({});
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
+  const [photoCache, setPhotoCache] = useState(() => readPhotoCache());
   const [form, setForm] = useState({
     name: "",
     species: "",
@@ -80,34 +78,6 @@ export default function Patients() {
     setStatus("Could not load clients list");
   }
 
-  function getPhotoUrl(photo) {
-    if (!photo) return "";
-    if (typeof photo === "object") {
-      photo = photo.url || photo.path || photo.file || "";
-    }
-    if (typeof photo !== "string") return "";
-    const s = photo.trim().replace(/\\/g, "/");
-    if (s.startsWith("http://") || s.startsWith("https://") || s.startsWith("blob:") || s.startsWith("data:")) {
-      try {
-        const u = new URL(s);
-        if (u.pathname.includes("/src/assets/")) {
-          const fileName = u.pathname.split("/").pop();
-          return fileName ? `${BACKEND_URL}/media/${fileName}` : s;
-        }
-      } catch (_err) {}
-      return s;
-    }
-    if (s.includes("/src/assets/")) {
-      const fileName = s.split("/").pop();
-      return fileName ? `${BACKEND_URL}/media/${fileName}` : "";
-    }
-    if (s.startsWith("/api/media/")) return `${BACKEND_URL}${s.replace(/^\/api/, "")}`;
-    if (s.startsWith("/media/")) return `${BACKEND_URL}${s}`;
-    if (s.startsWith("media/")) return `${BACKEND_URL}/${s}`;
-    if (s.startsWith("/")) return `${BACKEND_URL}${s}`;
-    return `${BACKEND_URL}/media/${s}`;
-  }
-
   const svgPlaceholder = (() => {
     const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='300' height='160'>
       <rect width='100%' height='100%' fill='#eeeeee'/>
@@ -116,46 +86,54 @@ export default function Patients() {
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   })();
 
-  function getPhotoCandidate(patient) {
-    const candidates = [
-      patient?.photo_url,
-      patient?.image,
-      patient?.photo_path,
-      patient?.photo?.url,
-      patient?.photo?.path,
-      patient?.photo?.file,
-      patient?.photo?.image,
-      patient?.photo,
-    ];
-    for (const c of candidates) {
-      if (typeof c === "string" && c.trim()) return c;
+  function readPhotoCache() {
+    try {
+      const raw = sessionStorage.getItem("patientPhotoCache");
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch (_err) {
+      return {};
+    }
+  }
+
+  function writePhotoCache(next) {
+    setPhotoCache(next);
+    try {
+      sessionStorage.setItem("patientPhotoCache", JSON.stringify(next));
+    } catch (_err) {}
+  }
+
+  function cachePhotoForKeys(keys, dataUrl) {
+    if (!dataUrl) return;
+    const next = { ...photoCache };
+    keys.filter(Boolean).forEach((k) => {
+      next[String(k)] = dataUrl;
+    });
+    writePhotoCache(next);
+  }
+
+  function getCachedPhotoForPatient(patient) {
+    const keys = [
+      patient?.id,
+      patient?.patient_id,
+      patient?.patientId,
+    ].filter(Boolean);
+    for (const k of keys) {
+      const hit = photoCache[String(k)];
+      if (hit) return hit;
     }
     return "";
   }
 
-  async function loadImageWithAuthFallback(src, patientId) {
-    if (!src || src.startsWith("data:") || src.startsWith("blob:")) return;
-    const cached = objectUrlCacheRef.current.get(src);
-    if (cached) {
-      setImgFallbackMap((prev) => ({ ...prev, [patientId]: cached }));
-      return;
-    }
-    try {
-      const res = await API.get(src, { responseType: "blob" });
-      const url = URL.createObjectURL(res.data);
-      objectUrlCacheRef.current.set(src, url);
-      setImgFallbackMap((prev) => ({ ...prev, [patientId]: url }));
-    } catch (_err) {
-      setImgFallbackMap((prev) => ({ ...prev, [patientId]: svgPlaceholder }));
-    }
+  function fileToDataUrl(file) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(String(reader.result || ""));
+      reader.onerror = () => resolve("");
+      reader.readAsDataURL(file);
+    });
   }
-
-  useEffect(() => {
-    return () => {
-      for (const url of objectUrlCacheRef.current.values()) URL.revokeObjectURL(url);
-      objectUrlCacheRef.current.clear();
-    };
-  }, []);
 
   useEffect(() => {
     if (!form.photo) {
@@ -170,7 +148,14 @@ export default function Patients() {
   function handleChange(e) {
     const { name, value, files } = e.target;
     if (name === "photo") {
-      setForm((s) => ({ ...s, photo: files?.[0] || null }));
+      const file = files?.[0] || null;
+      if (file && file.type !== "image/jpeg") {
+        setStatus("Only JPEG images are allowed.");
+        if (fileRef.current) fileRef.current.value = "";
+        setForm((s) => ({ ...s, photo: null }));
+        return;
+      }
+      setForm((s) => ({ ...s, photo: file }));
       return;
     }
     setForm((s) => ({ ...s, [name]: value }));
@@ -232,13 +217,24 @@ export default function Patients() {
       fd.append(k, v);
     });
     try {
+      let response;
       if (editingId) {
-        await API.patch(`/patients/${editingId}/`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+        response = await API.patch(`/patients/${editingId}/`, fd, { headers: { "Content-Type": "multipart/form-data" } });
         setStatus("Patient updated");
       } else {
         fd.append("patient_id", `P-${Math.floor(Math.random() * 900000 + 100000)}`);
-        await API.post("/patients/", fd, { headers: { "Content-Type": "multipart/form-data" } });
+        response = await API.post("/patients/", fd, { headers: { "Content-Type": "multipart/form-data" } });
         setStatus("Patient added");
+      }
+      if (form.photo) {
+        const dataUrl = await fileToDataUrl(form.photo);
+        const saved = response?.data || {};
+        const keys = [
+          editingId,
+          saved?.id,
+          saved?.patient_id,
+        ].filter(Boolean);
+        cachePhotoForKeys(keys, dataUrl);
       }
       clearForm();
       await loadPatients();
@@ -290,7 +286,7 @@ export default function Patients() {
           {clients.map((c) => <option key={c.id} value={c.id}>{c.full_name || c.username || c.id}</option>)}
         </select>
         <label>Patient Photo</label>
-        <input ref={fileRef} type="file" name="photo" accept="image/*" onChange={handleChange} />
+        <input ref={fileRef} type="file" name="photo" accept="image/jpeg" onChange={handleChange} />
         {photoPreviewUrl ? (
           <img className="patient-photo" src={photoPreviewUrl} alt="Selected patient" />
         ) : null}
@@ -301,20 +297,11 @@ export default function Patients() {
       <div className="crud-list">
         {patients.map((p) => (
           <div key={p.id} className="crud-record-card">
-            {(() => {
-              const rawSrc = getPhotoUrl(getPhotoCandidate(p));
-              const src = imgFallbackMap[p.id] || rawSrc || svgPlaceholder;
-              return (
-                <img
-                  className="patient-photo"
-                  src={src}
-                  alt={p.name || "patient"}
-                  onError={() => {
-                    loadImageWithAuthFallback(rawSrc, p.id);
-                  }}
-                />
-              );
-            })()}
+            <img
+              className="patient-photo"
+              src={getCachedPhotoForPatient(p) || svgPlaceholder}
+              alt={p.name || "patient"}
+            />
             <strong>{p.name}</strong>
             <div>{p.species} {p.breed || ""}</div>
             <button type="button" className="action-btn" onClick={() => startEdit(p)}>Edit</button>
@@ -328,8 +315,6 @@ export default function Patients() {
     </div>
   );
 }
-
-
 
 
 

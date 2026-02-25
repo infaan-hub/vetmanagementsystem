@@ -254,7 +254,11 @@ function MobileSidebarControl() {
       aria-label="Toggle sidebar menu"
       onClick={() => document.body.classList.toggle("mobile-sidebar-open")}
     >
-      MENU
+      <span className="hamburger" aria-hidden="true">
+        <span className="hamburger-bar" />
+        <span className="hamburger-bar" />
+        <span className="hamburger-bar" />
+      </span>
     </button>
   );
 }

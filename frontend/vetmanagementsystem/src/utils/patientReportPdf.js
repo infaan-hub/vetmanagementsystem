@@ -7,7 +7,6 @@ const SECTION_ENDPOINTS = {
   documents: "/documents/",
   treatments: "/treatments/",
 };
-const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL || "").replace(/\/+$/, "");
 
 function toList(data) {
   if (Array.isArray(data)) return data;
@@ -82,86 +81,23 @@ function sectionLine(sectionKey, row) {
   return JSON.stringify(row);
 }
 
-function getPatientPhotoCandidate(patient) {
-  const candidates = [
-    patient?.photo_url,
-    patient?.image,
-    patient?.photo_path,
-    patient?.photo?.url,
-    patient?.photo?.path,
-    patient?.photo?.file,
-    patient?.photo?.image,
-    patient?.photo,
-  ];
-  for (const c of candidates) {
-    if (typeof c === "string" && c.trim()) return c;
-  }
-  return "";
-}
-
-function toAbsoluteImageUrl(url) {
-  if (!url || typeof url !== "string") return "";
-  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
-    try {
-      const u = new URL(url);
-      if (u.pathname.includes("/src/assets/")) {
-        const fileName = u.pathname.split("/").pop();
-        if (fileName) return `${BACKEND_URL}/media/${fileName}`;
-      }
-    } catch (_err) {}
-    return url;
-  }
-  if (url.includes("/src/assets/")) {
-    const fileName = url.split("/").pop();
-    if (fileName) return `${BACKEND_URL}/media/${fileName}`;
-  }
-  if (url.startsWith("/")) return `${BACKEND_URL || window.location.origin}${url}`;
-  return `${BACKEND_URL || window.location.origin}/${url}`;
-}
-
-async function imageToDataUrl(imageUrl) {
-  const abs = toAbsoluteImageUrl(imageUrl);
-  if (!abs) return "";
+function getCachedPatientPhoto(patient) {
   try {
-    const token = localStorage.getItem("access_token");
-    const res = await fetch(abs, {
-      credentials: "include",
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-    if (res.ok) {
-      const blob = await res.blob();
-      const dataUrl = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(String(reader.result || ""));
-        reader.onerror = () => resolve("");
-        reader.readAsDataURL(blob);
-      });
-      if (dataUrl) {
-        const type = String(blob.type || "").toLowerCase();
-        const format = type.includes("png") ? "PNG" : "JPEG";
-        return { dataUrl, format };
-      }
+    const raw = sessionStorage.getItem("patientPhotoCache");
+    if (!raw) return "";
+    const cache = JSON.parse(raw);
+    if (!cache || typeof cache !== "object") return "";
+    const keys = [
+      patient?.id,
+      patient?.patient_id,
+      patient?.patientId,
+    ].filter(Boolean);
+    for (const k of keys) {
+      const hit = cache[String(k)];
+      if (hit) return String(hit);
     }
   } catch (_err) {}
-
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      try {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-        resolve({ dataUrl: canvas.toDataURL("image/jpeg", 0.9), format: "JPEG" });
-      } catch (_err) {
-        resolve("");
-      }
-    };
-    img.onerror = () => resolve("");
-    img.src = abs;
-  });
+  return "";
 }
 
 async function ensureJsPdf() {
@@ -199,15 +135,14 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
   doc.text("Veterinary Management System", marginX, y);
   y += 24;
 
-  const photoUrl = getPatientPhotoCandidate(patient);
-  const photoPayload = await imageToDataUrl(photoUrl);
-  if (photoPayload?.dataUrl) {
+  const cachedPhoto = getCachedPatientPhoto(patient);
+  if (cachedPhoto) {
     try {
       const passportW = 100;
       const passportH = 130;
       const photoX = pageWidth - marginX - passportW;
       const photoY = 30;
-      doc.addImage(photoPayload.dataUrl, photoPayload.format || "JPEG", photoX, photoY, passportW, passportH);
+      doc.addImage(cachedPhoto, "JPEG", photoX, photoY, passportW, passportH);
     } catch (_err) {}
   }
 
