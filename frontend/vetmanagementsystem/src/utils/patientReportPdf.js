@@ -19,15 +19,18 @@ function normalizeId(v) {
   return String(v);
 }
 
-export function getPatientIdFromRecord(sectionKey, item) {
+export function getPatientIdFromRecord(sectionKey, item, visitPatientMap) {
   if (!item || typeof item !== "object") return "";
   const direct = item.patient?.id ?? item.patient_id ?? item.patient ?? item.patient_pk;
   if (direct !== undefined && direct !== null && direct !== "") return normalizeId(direct);
 
-  const visit = item.visit;
+  const visit = item.visit ?? item.visit_id;
   if (visit && typeof visit === "object") {
     const fromVisit = visit.patient?.id ?? visit.patient_id ?? visit.patient;
     if (fromVisit !== undefined && fromVisit !== null && fromVisit !== "") return normalizeId(fromVisit);
+  } else if (visit !== undefined && visit !== null && visit !== "") {
+    const fromMap = visitPatientMap?.[normalizeId(visit)];
+    if (fromMap !== undefined && fromMap !== null && fromMap !== "") return normalizeId(fromMap);
   }
   return "";
 }
@@ -44,10 +47,23 @@ export async function loadPatientReportData(API, patientId) {
   const patient = patients.find((p) => normalizeId(p.id ?? p.patient_id) === normalizeId(patientId));
 
   const sections = {};
+  const visitItems = sectionResults[Object.keys(SECTION_ENDPOINTS).indexOf("visits")];
+  const visits = visitItems?.status === "fulfilled" ? toList(visitItems.value.data) : [];
+  const visitPatientMap = {};
+  visits.forEach((visit) => {
+    const visitId = normalizeId(visit.id ?? visit.visit_id);
+    const pId = visit.patient?.id ?? visit.patient_id ?? visit.patient;
+    if (visitId && pId !== undefined && pId !== null && pId !== "") {
+      visitPatientMap[visitId] = normalizeId(pId);
+    }
+  });
+
   Object.keys(SECTION_ENDPOINTS).forEach((key, idx) => {
     const r = sectionResults[idx];
     const items = r.status === "fulfilled" ? toList(r.value.data) : [];
-    sections[key] = items.filter((x) => normalizeId(getPatientIdFromRecord(key, x)) === normalizeId(patientId));
+    sections[key] = items.filter(
+      (x) => normalizeId(getPatientIdFromRecord(key, x, visitPatientMap)) === normalizeId(patientId)
+    );
   });
 
   const clientId = patient?.client?.id ?? patient?.client_id ?? patient?.client;
