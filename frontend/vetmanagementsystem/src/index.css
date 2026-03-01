@@ -26,9 +26,37 @@ input, button {
 }
 
 button {
-  background: #00c6ff;
+  background: #000;
   color: #fff;
   cursor: pointer;
+}
+
+/* Global button visibility + contrast rule */
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  background: #000 !important;
+  color: #fff !important;
+  border: 1px solid #000 !important;
+}
+
+button:hover,
+input[type="button"]:hover,
+input[type="submit"]:hover,
+input[type="reset"]:hover {
+  background: #111 !important;
+  color: #fff !important;
+}
+
+button:disabled,
+input[type="button"]:disabled,
+input[type="submit"]:disabled,
+input[type="reset"]:disabled {
+  background: #2f2f2f !important;
+  color: #fff !important;
+  border-color: #2f2f2f !important;
+  opacity: 0.75;
 }
 
 .mobile-menu-toggle {

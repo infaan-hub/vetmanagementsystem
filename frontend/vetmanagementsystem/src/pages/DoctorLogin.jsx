@@ -23,7 +23,7 @@ export default function DoctorLogin() {
       localStorage.setItem("access_token", res.data.access);
       localStorage.setItem("refresh_token", res.data.refresh);
       localStorage.setItem("username", form.username);
-      if (res.data?.email) localStorage.setItem("email", res.data.email);
+      if (res.data?.user?.email) localStorage.setItem("email", res.data.user.email);
 
       setRole("doctor");
       navigate("/doctor-dashboard");

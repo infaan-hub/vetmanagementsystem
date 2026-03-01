@@ -7,10 +7,12 @@ export default function CustomerDashboard() {
   const chartRef = useRef(null);
 
   const [profileOpen, setProfileOpen] = useState(false);
+  const storedEmail = localStorage.getItem("email") || "";
+  const storedUsername = localStorage.getItem("username") || "customer";
   const [profile, setProfile] = useState({
     full_name: "Customer",
-    username: "customer",
-    email: "-",
+    username: storedUsername,
+    email: storedEmail || "-",
     client_id: "-",
   });
 
@@ -90,8 +92,8 @@ export default function CustomerDashboard() {
       if (firstClient) {
         setProfile({
           full_name: firstClient.full_name || firstClient.name || firstClient.username || "Customer",
-          username: firstClient.username || "customer",
-          email: firstClient.email || "-",
+          username: firstClient.username || storedUsername || "customer",
+          email: firstClient.email || storedEmail || "-",
           client_id: firstClient.client_id || firstClient.id || "-",
         });
       }
