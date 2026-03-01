@@ -25,9 +25,13 @@ export default function Patients() {
   });
 
   useEffect(() => {
-    loadPatients();
-    loadCurrentClient();
+    initPage();
   }, []);
+
+  async function initPage() {
+    const client = await loadCurrentClient();
+    await loadPatients(client);
+  }
 
   function toList(data) {
     if (Array.isArray(data)) return data;
@@ -36,10 +40,26 @@ export default function Patients() {
     return [];
   }
 
-  async function loadPatients() {
+  async function loadPatients(clientOverride = null) {
     try {
-      const res = await API.get("/patients/");
-      const list = toList(res.data);
+      const activeClient = clientOverride || currentClient;
+      const activeClientId = String(
+        activeClient?.id ??
+        activeClient?.client_id ??
+        localStorage.getItem("client_id") ??
+        ""
+      );
+
+      const endpoint = activeClientId ? `/patients/?client=${encodeURIComponent(activeClientId)}` : "/patients/";
+      const res = await API.get(endpoint);
+      let list = toList(res.data);
+
+      if (activeClientId) {
+        list = list.filter(
+          (p) => String(p?.client?.id ?? p?.client_id ?? p?.client ?? "") === activeClientId
+        );
+      }
+
       setPatients(list);
       list.forEach((p) => {
         if (p?.photo_data && String(p.photo_data).startsWith("data:image/")) {
@@ -94,7 +114,7 @@ export default function Patients() {
             ...s,
             client: s.client || clientId,
           }));
-          return;
+          return matched;
         }
       } catch (_err) {
         
@@ -103,6 +123,7 @@ export default function Patients() {
 
     setCurrentClient(null);
     setStatus("Could not load logged customer");
+    return null;
   }
 
   const svgPlaceholder = (() => {
@@ -275,16 +296,23 @@ export default function Patients() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!form.name || !form.species || !form.client) {
-      setStatus("Name, species and client are required");
+    const activeClientId = String(
+      currentClient?.id ??
+      currentClient?.client_id ??
+      localStorage.getItem("client_id") ??
+      ""
+    );
+    if (!form.name || !form.species || !activeClientId) {
+      setStatus("Name, species and logged customer are required");
       return;
     }
     const fd = new FormData();
     Object.entries(form).forEach(([k, v]) => {
       if (v === null || v === undefined || v === "") return;
-      if (k === "photo") return;
+      if (k === "photo" || k === "client") return;
       fd.append(k, v);
     });
+    fd.append("client", activeClientId);
     if (photoDataUrl) {
       fd.append("photo_data", photoDataUrl);
     }
@@ -349,7 +377,13 @@ export default function Patients() {
         <input type="number" step="0.01" name="weight_kg" value={form.weight_kg} onChange={handleChange} placeholder="Weight kg" />
         <label>Customer</label>
         <input
-          value={currentClient?.full_name || currentClient?.username || currentClient?.email || "Logged customer"}
+          value={
+            currentClient?.full_name ||
+            currentClient?.username ||
+            localStorage.getItem("username") ||
+            currentClient?.email ||
+            "Logged customer"
+          }
           readOnly
         />
         <label>Patient Photo</label>
