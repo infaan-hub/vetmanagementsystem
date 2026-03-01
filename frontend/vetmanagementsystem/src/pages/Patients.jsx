@@ -6,7 +6,7 @@ export default function Patients() {
   const fileRef = useRef(null);
   const latestPhotoTokenRef = useRef(0);
   const [patients, setPatients] = useState([]);
-  const [clients, setClients] = useState([]);
+  const [currentClient, setCurrentClient] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [status, setStatus] = useState("");
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
@@ -26,7 +26,7 @@ export default function Patients() {
 
   useEffect(() => {
     loadPatients();
-    loadClients();
+    loadCurrentClient();
   }, []);
 
   function toList(data) {
@@ -53,8 +53,12 @@ export default function Patients() {
     }
   }
 
-  async function loadClients() {
+  async function loadCurrentClient() {
     const endpoints = ["/clients/", "/client/", "/users/"];
+    const storedClientId = String(localStorage.getItem("client_id") || "");
+    const username = String(localStorage.getItem("username") || "").toLowerCase();
+    const email = String(localStorage.getItem("email") || "").toLowerCase();
+
     for (const endpoint of endpoints) {
       try {
         const res = await API.get(endpoint);
@@ -69,12 +73,26 @@ export default function Patients() {
         }
 
         if (list.length) {
-          setClients(list);
+          const matched =
+            list.find((c) => String(c?.id ?? c?.client_id ?? "") === storedClientId) ||
+            list.find((c) => String(c?.username || "").toLowerCase() === username) ||
+            list.find((c) => String(c?.email || "").toLowerCase() === email) ||
+            (list.length === 1 ? list[0] : null);
+
+          if (!matched) {
+            continue;
+          }
+
+          setCurrentClient(matched);
+
+          const clientId = String(matched?.id ?? matched?.client_id ?? "");
+          if (clientId) {
+            localStorage.setItem("client_id", clientId);
+          }
+
           setForm((s) => ({
             ...s,
-            client:
-              s.client ||
-              String(list[0]?.id ?? list[0]?.client_id ?? ""),
+            client: s.client || clientId,
           }));
           return;
         }
@@ -83,8 +101,8 @@ export default function Patients() {
       }
     }
 
-    setClients([]);
-    setStatus("Could not load clients list");
+    setCurrentClient(null);
+    setStatus("Could not load logged customer");
   }
 
   const svgPlaceholder = (() => {
@@ -219,7 +237,7 @@ export default function Patients() {
       color: "",
       date_of_birth: "",
       weight_kg: "",
-      client: "",
+      client: String(currentClient?.id ?? currentClient?.client_id ?? ""),
       photo: null,
     });
     setPhotoPreviewUrl("");
@@ -329,11 +347,11 @@ export default function Patients() {
         <input type="date" name="date_of_birth" value={form.date_of_birth} onChange={handleChange} />
         <label>Weight (kg)</label>
         <input type="number" step="0.01" name="weight_kg" value={form.weight_kg} onChange={handleChange} placeholder="Weight kg" />
-        <label>Client</label>
-        <select name="client" value={form.client} onChange={handleChange} required>
-          <option value="">Select client</option>
-          {clients.map((c) => <option key={c.id} value={c.id}>{c.full_name || c.username || c.id}</option>)}
-        </select>
+        <label>Customer</label>
+        <input
+          value={currentClient?.full_name || currentClient?.username || currentClient?.email || "Logged customer"}
+          readOnly
+        />
         <label>Patient Photo</label>
         <input ref={fileRef} type="file" name="photo" accept="image/*" onChange={handleChange} />
         {photoPreviewUrl ? (

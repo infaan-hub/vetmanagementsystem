@@ -40,6 +40,10 @@ export default function CustomerLogin() {
       // Determine role
       const role = res.data.user?.role || (res.data.user?.is_staff ? "doctor" : "customer");
       setRole(role);
+      localStorage.setItem("username", res.data.user?.username || form.username);
+      if (res.data.user?.email) {
+        localStorage.setItem("email", res.data.user.email);
+      }
 
       // Redirect based on role
       if (role === "doctor") navigate("/doctor-dashboard");

@@ -97,7 +97,7 @@ export default function DoctorOverview() {
 :root{
   --glass-bg: rgba(255,255,255,.72);
   --glass-shadow: 0 18px 40px rgba(0,0,0,.18);
-  --primary:#0b5cff;
+  --primary:#000;
   --success:#1bbf6b;
   --warning:#ff9800;
 }
