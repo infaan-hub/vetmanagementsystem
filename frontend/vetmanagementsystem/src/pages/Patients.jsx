@@ -347,22 +347,77 @@ export default function Patients() {
       <h1>Patients 🐾</h1>
       <p className="page-desc">Complete patient profiles, photos, and care details in one place.</p>
       <form onSubmit={handleSubmit}>
-        <label>Name</label>
-        <input name="name" value={form.name} onChange={handleChange} placeholder="Name" required />
-        <label>Species</label>
-        <input name="species" value={form.species} onChange={handleChange} placeholder="Species" required />
-        <label>Breed</label>
-        <input name="breed" value={form.breed} onChange={handleChange} placeholder="Breed" />
-        <label>Gender</label>
-        <input name="gender" value={form.gender} onChange={handleChange} placeholder="Gender" />
-        <label>Color</label>
-        <input name="color" value={form.color} onChange={handleChange} placeholder="Color" />
-        <label>Date of Birth</label>
-        <input type="date" name="date_of_birth" value={form.date_of_birth} onChange={handleChange} />
-        <label>Weight (kg)</label>
-        <input type="number" step="0.01" name="weight_kg" value={form.weight_kg} onChange={handleChange} placeholder="Weight kg" />
-        <label>Customer</label>
+        <label htmlFor="patient-name">Name</label>
         <input
+          id="patient-name"
+          name="name"
+          value={form.name}
+          onChange={handleChange}
+          placeholder="Name"
+          autoComplete="off"
+          required
+        />
+        <label htmlFor="patient-species">Species</label>
+        <input
+          id="patient-species"
+          name="species"
+          value={form.species}
+          onChange={handleChange}
+          placeholder="Species"
+          autoComplete="off"
+          required
+        />
+        <label htmlFor="patient-breed">Breed</label>
+        <input
+          id="patient-breed"
+          name="breed"
+          value={form.breed}
+          onChange={handleChange}
+          placeholder="Breed"
+          autoComplete="off"
+        />
+        <label htmlFor="patient-gender">Gender</label>
+        <input
+          id="patient-gender"
+          name="gender"
+          value={form.gender}
+          onChange={handleChange}
+          placeholder="Gender"
+          autoComplete="off"
+        />
+        <label htmlFor="patient-color">Color</label>
+        <input
+          id="patient-color"
+          name="color"
+          value={form.color}
+          onChange={handleChange}
+          placeholder="Color"
+          autoComplete="off"
+        />
+        <label htmlFor="patient-dob">Date of Birth</label>
+        <input
+          id="patient-dob"
+          type="date"
+          name="date_of_birth"
+          value={form.date_of_birth}
+          onChange={handleChange}
+          autoComplete="bday"
+        />
+        <label htmlFor="patient-weight">Weight (kg)</label>
+        <input
+          id="patient-weight"
+          type="number"
+          step="0.01"
+          name="weight_kg"
+          value={form.weight_kg}
+          onChange={handleChange}
+          placeholder="Weight kg"
+          autoComplete="off"
+        />
+        <label htmlFor="customer-display">Customer</label>
+        <input
+          id="customer-display"
+          name="customer_display"
           value={
             currentClient?.full_name ||
             currentClient?.username ||
@@ -370,10 +425,19 @@ export default function Patients() {
             currentClient?.email ||
             "Logged customer"
           }
+          autoComplete="name"
           readOnly
         />
-        <label>Patient Photo</label>
-        <input ref={fileRef} type="file" name="photo" accept="image/*" onChange={handleChange} />
+        <label htmlFor="patient-photo">Patient Photo</label>
+        <input
+          id="patient-photo"
+          ref={fileRef}
+          type="file"
+          name="photo"
+          accept="image/*"
+          onChange={handleChange}
+          autoComplete="off"
+        />
         {photoPreviewUrl ? (
           <img className="patient-photo" src={photoPreviewUrl} alt="Selected patient" />
         ) : null}
