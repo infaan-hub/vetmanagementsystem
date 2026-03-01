@@ -288,8 +288,8 @@ export default function Patients() {
       localStorage.getItem("client_id") ??
       ""
     );
-    if (!form.name || !form.species || !activeClientId) {
-      setStatus("Name, species and logged customer are required. Please login again.");
+    if (!form.name || !form.species || !form.gender || !activeClientId) {
+      setStatus("Name, species, gender and logged customer are required. Please login again.");
       return;
     }
     const fd = new FormData();
@@ -325,7 +325,13 @@ export default function Patients() {
       await loadPatients();
     } catch (err) {
       console.error(err);
-      setStatus("Failed to save patient");
+      const apiDetail =
+        err?.response?.data?.detail ||
+        err?.response?.data?.gender?.[0] ||
+        err?.response?.data?.name?.[0] ||
+        err?.response?.data?.species?.[0] ||
+        err?.response?.data?.client?.[0];
+      setStatus(apiDetail || "Failed to save patient");
     }
   }
 
@@ -384,6 +390,7 @@ export default function Patients() {
           onChange={handleChange}
           placeholder="Gender"
           autoComplete="off"
+          required
         />
         <label htmlFor="patient-color">Color</label>
         <input
