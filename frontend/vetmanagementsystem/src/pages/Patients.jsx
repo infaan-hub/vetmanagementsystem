@@ -9,6 +9,7 @@ export default function Patients() {
   const [currentClient, setCurrentClient] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [status, setStatus] = useState("");
+  const [loadingClient, setLoadingClient] = useState(true);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
   const [photoDataUrl, setPhotoDataUrl] = useState("");
   const [photoCache, setPhotoCache] = useState(() => readPhotoCache());
@@ -50,8 +51,7 @@ export default function Patients() {
         ""
       );
 
-      const endpoint = activeClientId ? `/patients/?client=${encodeURIComponent(activeClientId)}` : "/patients/";
-      const res = await API.get(endpoint);
+      const res = await API.get("/patients/");
       let list = toList(res.data);
 
       if (activeClientId) {
@@ -74,56 +74,42 @@ export default function Patients() {
   }
 
   async function loadCurrentClient() {
-    const endpoints = ["/clients/", "/client/", "/users/"];
+    setLoadingClient(true);
     const storedClientId = String(localStorage.getItem("client_id") || "");
     const username = String(localStorage.getItem("username") || "").toLowerCase();
     const email = String(localStorage.getItem("email") || "").toLowerCase();
 
-    for (const endpoint of endpoints) {
-      try {
-        const res = await API.get(endpoint);
-        let list = toList(res.data);
-
-        // If endpoint is /users/, keep likely customer records.
-        if (endpoint === "/users/") {
-          list = list.filter((u) => {
-            const role = String(u?.role || "").toLowerCase();
-            return role === "customer" || role === "client" || u?.is_staff === false;
-          });
-        }
-
-        if (list.length) {
-          const matched =
-            list.find((c) => String(c?.id ?? c?.client_id ?? "") === storedClientId) ||
-            list.find((c) => String(c?.username || "").toLowerCase() === username) ||
-            list.find((c) => String(c?.email || "").toLowerCase() === email) ||
-            (list.length === 1 ? list[0] : null);
-
-          if (!matched) {
-            continue;
-          }
-
-          setCurrentClient(matched);
-
-          const clientId = String(matched?.id ?? matched?.client_id ?? "");
-          if (clientId) {
-            localStorage.setItem("client_id", clientId);
-          }
-
-          setForm((s) => ({
-            ...s,
-            client: s.client || clientId,
-          }));
-          return matched;
-        }
-      } catch (_err) {
-        
+    try {
+      const res = await API.get("/clients/");
+      const list = toList(res.data);
+      if (!list.length) {
+        setCurrentClient(null);
+        setStatus("Could not load logged customer");
+        return null;
       }
-    }
 
-    setCurrentClient(null);
-    setStatus("Could not load logged customer");
-    return null;
+      const matched =
+        list.find((c) => String(c?.id ?? c?.client_id ?? "") === storedClientId) ||
+        list.find((c) => String(c?.username || "").toLowerCase() === username) ||
+        list.find((c) => String(c?.email || "").toLowerCase() === email) ||
+        list[0];
+
+      setCurrentClient(matched);
+      const clientId = String(matched?.id ?? matched?.client_id ?? "");
+      if (clientId) localStorage.setItem("client_id", clientId);
+
+      setForm((s) => ({
+        ...s,
+        client: clientId,
+      }));
+      return matched;
+    } catch (_err) {
+      setCurrentClient(null);
+      setStatus("Could not load logged customer");
+      return null;
+    } finally {
+      setLoadingClient(false);
+    }
   }
 
   const svgPlaceholder = (() => {
@@ -303,7 +289,7 @@ export default function Patients() {
       ""
     );
     if (!form.name || !form.species || !activeClientId) {
-      setStatus("Name, species and logged customer are required");
+      setStatus("Name, species and logged customer are required. Please login again.");
       return;
     }
     const fd = new FormData();
@@ -391,7 +377,9 @@ export default function Patients() {
         {photoPreviewUrl ? (
           <img className="patient-photo" src={photoPreviewUrl} alt="Selected patient" />
         ) : null}
-        <button type="submit">{editingId ? "Update Patient" : "Add Patient"}</button>
+        <button type="submit" disabled={loadingClient || !currentClient}>
+          {editingId ? "Update Patient" : "Add Patient"}
+        </button>
         {editingId ? <button type="button" onClick={clearForm}>Cancel</button> : null}
       </form>
       <p className="status-msg">{status}</p>

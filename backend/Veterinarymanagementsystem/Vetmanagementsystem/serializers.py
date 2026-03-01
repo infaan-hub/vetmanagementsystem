@@ -83,6 +83,10 @@ class PatientSerializer(serializers.ModelSerializer):
             "client",
             "patient_id",
         ]
+        extra_kwargs = {
+            "client": {"required": False},
+            "patient_id": {"required": False},
+        }
 
 
 # -------------------------

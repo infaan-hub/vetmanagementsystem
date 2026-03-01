@@ -201,7 +201,7 @@ class ClientRegistrationView(APIView):
 class PatientViewSet(ModelViewSet):
 
     serializer_class = PatientSerializer
-    permission_classes = [IsDoctorFullClientReadOnly]
+    permission_classes = [IsClientFullDoctorReadOnly]
 
     def get_queryset(self):
 
@@ -213,8 +213,20 @@ class PatientViewSet(ModelViewSet):
         return Patient.objects.filter(**_client_filter_kwargs(user))
 
     def perform_create(self, serializer):
+        if self.request.user.is_staff:
+            serializer.save()
+            return
 
-        serializer.save()
+        client = _client_for_user(self.request.user)
+        serializer.save(client=client)
+
+    def perform_update(self, serializer):
+        if self.request.user.is_staff:
+            serializer.save()
+            return
+
+        client = _client_for_user(self.request.user)
+        serializer.save(client=client)
 
     
 
