@@ -373,7 +373,7 @@ body{
             Dashboard
           </a>
           <a href="/appointments">Appointments</a>
-          <a href="/receipts">Receipts</a>
+          <a href="/patients">Patients</a>
           <a href="/overview">Overview</a>
         </nav>
       </aside>

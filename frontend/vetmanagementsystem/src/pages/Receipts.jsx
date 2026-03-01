@@ -179,10 +179,10 @@ export default function Receipts() {
       `}</style>
 
       <aside className="sidebar">
-        <h2>VMS Customer Panel</h2>
+        <h2>VMS Doctor Panel</h2>
         <nav className="nav">
-          <a href="/customer-dashboard">Dashboard</a>
-          <a href="/appointments">Appointments</a>
+          <a href="/doctor-dashboard">Dashboard</a>
+          <a href="/visits">Visits</a>
           <a className="active" href="/receipts">Receipts</a>
           <a href="/overview">Overview</a>
         </nav>

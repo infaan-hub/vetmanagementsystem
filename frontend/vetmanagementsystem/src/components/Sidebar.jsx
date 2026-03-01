@@ -14,12 +14,12 @@ export default function Sidebar({ role }) {
       <h3>Menu</h3>
       <ul style={{ listStyle: "none", padding: 0 }}>
         {role === "doctor" && <>
-          <li><Link to="/patients">Patients</Link></li>
+          <li><Link to="/receipts">Receipts</Link></li>
           <li><Link to="/visits">Visits</Link></li>
         </>}
         {role === "customer" && <>
           <li><Link to="/appointments">Appointments</Link></li>
-          <li><Link to="/receipts">Receipts</Link></li>
+          <li><Link to="/patients">Patients</Link></li>
         </>}
         <li><Link to="/overview">Overview</Link></li>
       </ul>

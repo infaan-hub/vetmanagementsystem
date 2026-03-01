@@ -19,14 +19,14 @@ export default function Navbar({ role }) {
       <div style={{ display: "flex", gap: "16px" }}>
         {role === "doctor" && (
           <>
-            <Link to="/patients">Patients</Link>
+            <Link to="/receipts">Receipts</Link>
             <Link to="/visits">Visits</Link>
           </>
         )}
         {role === "customer" && (
           <>
             <Link to="/appointments">Appointments</Link>
-            <Link to="/receipts">Receipts</Link>
+            <Link to="/patients">Patients</Link>
           </>
         )}
         <Link to="/overview">Overview</Link>

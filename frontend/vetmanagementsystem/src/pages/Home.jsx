@@ -81,11 +81,11 @@ export default function Home() {
           <h3>Features 🐾</h3>
           <div className="feature-grid">
             {features.map((item) => (
-              <article key={item.title} className="feature-card">
+              <Link key={item.title} to="/login" className="feature-card">
                 <img src={item.image} alt={item.title} className="feature-card-image" loading="lazy" />
                 <h4>{item.title}</h4>
                 <p>{item.description}</p>
-              </article>
+              </Link>
             ))}
           </div>
         </section>
@@ -194,6 +194,9 @@ export default function Home() {
           gap: 10px;
         }
         .feature-card {
+          text-decoration: none;
+          color: inherit;
+          display: block;
           border-radius: 12px;
           border: 1px solid rgba(0, 0, 0, 0.1);
           background: rgba(255, 255, 255, 0.88);

@@ -151,7 +151,7 @@ body{
             Overview
           </a>
           <a href="/appointments">Appointment</a>
-          <a href="/receipts">Receipts</a>
+          <a href="/patients">Patients</a>
         </nav>
       </aside>
 

@@ -303,7 +303,7 @@ body{
             Dashboard
           </a>
           <a href="/overview/">Overview</a>
-          <a href="/patients/">Patients</a>
+          <a href="/receipts/">Receipts</a>
           <a href="/allergies/">Allergies</a>
           <a href="/visits/">Visits</a>
           <a href="/vitals/">Vitals</a>

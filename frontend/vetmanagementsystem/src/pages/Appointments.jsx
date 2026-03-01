@@ -200,7 +200,7 @@ export default function Appointments() {
         <nav className="nav">
           <a href="/customer-dashboard">Dashboard</a>
           <a className="active" href="/appointments">Appointments</a>
-          <a href="/receipts">Receipts</a>
+          <a href="/patients">Patients</a>
           <a href="/overview">Overview</a>
         </nav>
       </aside>

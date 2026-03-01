@@ -144,7 +144,7 @@ export default function Medications() {
         <h2>VMS Doctor Panel</h2>
         <nav className="crud-nav">
           <a href="/doctor-dashboard">Dashboard</a>
-          <a href="/patients">Patients</a>
+          <a href="/receipts">Receipts</a>
           <a href="/visits">Visits</a>
           <a href="/allergies">Allergies</a>
           <a href="/vitals">Vitals</a>
