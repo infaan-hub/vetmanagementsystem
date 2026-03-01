@@ -6,6 +6,8 @@ const SECTION_ENDPOINTS = {
   medications: "/medications/",
   documents: "/documents/",
   treatments: "/treatments/",
+  appointments: "/appointments/",
+  receipts: "/receipts/",
 };
 
 function toList(data) {
@@ -45,6 +47,7 @@ export async function loadPatientReportData(API, patientId) {
   const patients = patientsRes.status === "fulfilled" ? toList(patientsRes.value.data) : [];
   const clients = clientsRes.status === "fulfilled" ? toList(clientsRes.value.data) : [];
   const patient = patients.find((p) => normalizeId(p.id ?? p.patient_id) === normalizeId(patientId));
+  const patientClientId = normalizeId(patient?.client?.id ?? patient?.client_id ?? patient?.client);
 
   const sections = {};
   const visitItems = sectionResults[Object.keys(SECTION_ENDPOINTS).indexOf("visits")];
@@ -61,9 +64,16 @@ export async function loadPatientReportData(API, patientId) {
   Object.keys(SECTION_ENDPOINTS).forEach((key, idx) => {
     const r = sectionResults[idx];
     const items = r.status === "fulfilled" ? toList(r.value.data) : [];
-    sections[key] = items.filter(
-      (x) => normalizeId(getPatientIdFromRecord(key, x, visitPatientMap)) === normalizeId(patientId)
-    );
+    if (key === "receipts") {
+      sections[key] = items.filter((x) => {
+        const receiptClientId = normalizeId(x.client?.id ?? x.client_id ?? x.client);
+        return receiptClientId && receiptClientId === patientClientId;
+      });
+    } else {
+      sections[key] = items.filter(
+        (x) => normalizeId(getPatientIdFromRecord(key, x, visitPatientMap)) === normalizeId(patientId)
+      );
+    }
   });
 
   const clientId = patient?.client?.id ?? patient?.client_id ?? patient?.client;
@@ -185,6 +195,7 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
     black: [10, 10, 10],
     white: [255, 255, 255],
     red: [186, 45, 45],
+    green: [24, 122, 64],
     softGray: [242, 244, 246],
     line: [220, 224, 228],
   };
@@ -253,11 +264,11 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
     y += 8;
   }
 
-  function drawTableHeader(cols) {
+  function drawTableHeader(cols, accentColor = colors.red) {
     const total = cols.reduce((s, c) => s + c.w, 0);
     const scale = maxWidth / total;
     let x = marginX;
-    doc.setFillColor(...colors.red);
+    doc.setFillColor(...accentColor);
     doc.rect(marginX, y - 14, maxWidth, 20, "F");
     doc.setTextColor(...colors.white);
     doc.setFont("helvetica", "bold");
@@ -373,9 +384,20 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
       { label: "Date", key: "date", w: 120 },
       { label: "Description", key: "desc", w: 220 },
     ]],
+    ["appointments", "Appointments", [
+      { label: "Date", key: "date", w: 160 },
+      { label: "Reason", key: "reason", w: 220 },
+      { label: "Status", key: "status", w: 120 },
+    ]],
+    ["receipts", "Receipts", [
+      { label: "Date", key: "date", w: 140 },
+      { label: "Amount", key: "amount", w: 120 },
+      { label: "Status", key: "status", w: 120 },
+      { label: "Client", key: "client", w: 140 },
+    ], { headerColor: colors.green }],
   ];
 
-  orderedSections.forEach(([key, title, cols]) => {
+  orderedSections.forEach(([key, title, cols, opts]) => {
     const rows = sections[key] || [];
     drawSectionTitle(`${title} (${rows.length})`);
     if (!rows.length) {
@@ -387,7 +409,7 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
       return;
     }
 
-    drawTableHeader(cols);
+    drawTableHeader(cols, opts?.headerColor || colors.red);
 
     const tableRows = rows.map((row) => {
       if (key === "allergies") {
@@ -438,6 +460,21 @@ export async function generatePatientReportPdf({ patient, client, sections }) {
           name: row.name || row.diagnosis || "Treatment",
           date: row.date || row.follow_up_date || "-",
           desc: row.description || row.treatment_description || "-",
+        };
+      }
+      if (key === "appointments") {
+        return {
+          date: row.date || row.appointment_date || row.created_at || "-",
+          reason: row.reason || "-",
+          status: row.status || "Scheduled",
+        };
+      }
+      if (key === "receipts") {
+        return {
+          date: row.date || row.issued_date || row.created_at || "-",
+          amount: row.amount ?? "-",
+          status: row.status || "-",
+          client: row.client_name || row.client || "-",
         };
       }
       return {};
