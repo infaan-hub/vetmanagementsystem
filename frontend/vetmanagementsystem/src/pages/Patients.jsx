@@ -401,7 +401,7 @@ export default function Patients() {
           name="date_of_birth"
           value={form.date_of_birth}
           onChange={handleChange}
-          autoComplete="bday"
+          autoComplete="off"
         />
         <label htmlFor="patient-weight">Weight (kg)</label>
         <input
